@@ -477,7 +477,8 @@ def _polish(sc: dict, niche: dict) -> dict:
         "2) Sharper hook (curiosity or pattern-break), no weak openers.\n"
         "3) Each segment = one idea, short, conversational 'you'. Keep the overall length "
         "(72-85 words total — a 30-35 second video; don't inflate and don't cut in half).\n"
-        "4) No fabricated numbers. Keep the hook's technique and hold the payoff until the end.\n"
+        "4) No fabricated numbers or claims (bans/laws/'illegal') — every fact must stay TRUE. "
+        "Keep the hook's technique and hold the payoff until the end.\n"
         "5) If the outro echoes the hook (callback), preserve that echo verbatim.\n"
         'Return STRICT JSON: {"hook": "...", "segments": ["...", "..."], "outro": "..."} with the same segment count.'
     )
@@ -553,7 +554,8 @@ def _three_hooks(sc: dict, niche: dict) -> dict:
     system = (
         "You craft viral hooks for Shorts/TikTok/Reels. Given a draft hook and topic, write 3 DIFFERENT hooks "
         "(each ≤14 words, distinct technique: curiosity / pattern-break / loss-mistake / specific number), "
-        "plain English, no 'hey guys/in this video', open a loop, don't reveal the payoff. Then pick the strongest "
+        "plain English, no 'hey guys/in this video', open a loop, don't reveal the payoff. "
+        "Every factual claim must stay TRUE — never invent bans/laws/'illegal' angles for drama. Then pick the strongest "
         '(2 stacked triggers + self-relevance). Return STRICT JSON: {"variants": ["v1","v2","v3"], "best_index": 0}'
     )
     try:
