@@ -1,0 +1,113 @@
+name: autopilot
+
+# Автопостинг v2: раздельный контент по площадкам, крон разносит выходы по дню (МСК = UTC+3).
+#   08:00 UTC (11 МСК) → ig_vk   : видео → Instagram Reels + VK Клипы (авто)
+#   11:00 UTC (14 МСК) → youtube : видео → TG Паше (ручная выкладка)
+#   14:00 UTC (17 МСК) → text    : текст-история-сериал → Threads + VK сообщество (авто)
+#   17:00 UTC (20 МСК) → tiktok  : видео → TG Даше (ручная выкладка)
+# Крон ВКЛЮЧЁН 2026-07-06 — публикации ежедневно по слотам ниже (+ ручной workflow_dispatch).
+
+on:
+  workflow_dispatch:
+    inputs:
+      output:
+        description: "выход: ig_vk | text | youtube | tiktok"
+        required: true
+        default: "ig_vk"
+      niche:
+        description: "ниша (пусто = все подходящие)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 8 * * *"    # ig_vk   (11:00 МСК)
+    - cron: "0 11 * * *"   # youtube (14:00 МСК) → TG Паше+Даше
+    - cron: "0 14 * * *"   # text    (17:00 МСК)
+    - cron: "0 17 * * *"   # tiktok  (20:00 МСК) → TG Паше+Даше
+
+concurrency:
+  group: autopilot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write   # commit-back state/ штатным github.token (сериалы/история/posted.json)
+    env:
+      PYTHONUNBUFFERED: "1"
+      CF_DATA_ROOT: ${{ github.workspace }}/state/cfdata   # персист history.jsonl между ранами (антидубль тем)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Установить ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Python-зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Записать секреты
+        env:
+          SECRETS_ENV: ${{ secrets.SECRETS_ENV }}
+        run: |
+          mkdir -p ~/.config/content-factory
+          printf '%s' "$SECRETS_ENV" > ~/.config/content-factory/secrets.env
+      - name: Выбрать выход (по cron-времени или вручную)
+        id: pick
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_OUT: ${{ github.event.inputs.output }}
+        run: |
+          case "$SCHEDULE" in
+            "0 8 * * *")  OUT=ig_vk ;;
+            "0 11 * * *") OUT=youtube ;;
+            "0 14 * * *") OUT=text ;;
+            "0 17 * * *") OUT=tiktok ;;
+            *)            OUT="$INPUT_OUT" ;;
+          esac
+          echo "out=$OUT" >> "$GITHUB_OUTPUT"
+          echo "Выход: $OUT"
+      - name: Сгенерировать и выложить
+        env:
+          OUT: ${{ steps.pick.outputs.out }}
+          NICHE: ${{ github.event.inputs.niche }}
+          GITHUB_TOKEN: ${{ secrets.MEDIA_PAT }}   # media_host заливает mp4 в cf-media → raw URL для IG/Threads
+        run: |
+          mkdir -p "$CF_DATA_ROOT"
+          python3 factory.py v2 "$OUT" $NICHE
+      - name: Сохранить состояние (сериалы + история тем) — коммит-бэк с ретраем
+        if: always()
+        run: |
+          git config user.email "autopilot@content-factory"
+          git config user.name "cf-autopilot"
+          # факт. изменения только под state/ (serials.json, cfdata/history.jsonl)
+          if [ -z "$(git status --porcelain state/ 2>/dev/null)" ]; then
+            echo "state/ без изменений — коммитить нечего"; exit 0
+          fi
+          git add state/
+          git commit -m "state: сериалы+история тем [skip ci]" || { echo "нечего коммитить"; exit 0; }
+          ok=""
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin master && git push origin master && { ok=1; break; }
+            echo "push попытка $i не удалась, повтор через 5с"; sleep 5
+          done
+          if [ -z "$ok" ]; then
+            echo "::error::коммит-бэк state/ не удался после 5 попыток — состояние сериалов может рассинхрониться"
+            exit 1
+          fi
+      - name: Алерт в TG при падении джобы
+        if: failure()
+        env:
+          SECRETS_ENV: ${{ secrets.SECRETS_ENV }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OUT: ${{ steps.pick.outputs.out }}
+        run: |
+          mkdir -p ~/.config/content-factory
+          printf '%s' "$SECRETS_ENV" > ~/.config/content-factory/secrets.env
+          python3 - <<'PY'
+          import os, core, reporter
+          core.load_local_secrets()
+          reporter.critical(f"🛑 CI autopilot УПАЛ · выход={os.environ.get('OUT','?')}\n{os.environ.get('RUN_URL','')}")
+          PY

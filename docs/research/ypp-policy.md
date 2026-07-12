@@ -1,0 +1,58 @@
+# YouTube Partner Program for AI/Faceless Channels — July 2026 Research Report
+
+## 1. Current YPP Thresholds & Review Timelines (2026)
+
+**Thresholds are unchanged from 2023 — two tiers:**
+- **Full monetization (ads):** 1,000 subscribers + EITHER 4,000 public watch hours in the past 12 months OR 10M public Shorts views in the past 90 days ([YouTube official](https://www.youtube.com/creators/earn/youtube-partner-program/), [vidIQ guide](https://vidiq.com/blog/post/youtube-partner-program-guide/))
+- **Fan-funding tier (memberships/Supers, no ads):** 500 subs + 3 public uploads in 90 days + 3,000 watch hours OR 3M Shorts views ([TubeBuddy](https://www.tubebuddy.com/blog/youtube-monetization-requirements/))
+- Plus: linked AdSense, 2-step verification, no active Community Guidelines strikes, and compliance with all monetization policies. **Meeting numbers does not guarantee approval** — originality review is the gate ([SubSub](https://www.subsub.io/blog/youtube-monetization-requirements)).
+
+**Review timelines in practice (2026):** YouTube states "typically about 1 month." Creator reports: clean channels 7–14 days (some 48–72h); AI-heavy, faceless, or sensitive-niche (news/health/true-crime) channels get manual review, 2–4 weeks, sometimes longer ([vidIQ](https://vidiq.com/blog/post/get-monetized-youtube/), [ytmoneycalculator](https://ytmoneycalculator.com/youtube-monetization-requirements/)). Rejection = 21–30 day wait before re-applying.
+
+## 2. July 2025 "Inauthentic Content" Policy & Real 2026 Enforcement
+
+**The policy (effective July 15, 2025):** YouTube renamed "repetitious content" → **"inauthentic content"** in YPP monetization policies. Official current wording ([support.google.com/youtube/answer/1311392](https://support.google.com/youtube/answer/1311392?hl=en)):
+
+> "Inauthentic content refers to mass-produced or repetitive content. This includes content that looks like it's made with a template with little to no variation across videos, or content that's easily replicable at scale."
+
+Explicitly **not eligible**: "content that exclusively features readings of other materials you did not originally create"; "mass-produced content using a similar or unoriginal template across multiple videos"; "AI-generated content made with generic templates giving the impression of mass production without adding the creator's original, authentic insights or perspective." Explicitly **allowed**: same intro/outro with different core content; similar-format videos where each discusses its specific subject substantively. Rene Ritchie (YouTube Head of Editorial & Creator Liaison) framed it as a "minor update," not an AI ban — reaction/clip/commentary content stays monetizable ([TechCrunch](https://techcrunch.com/2025/07/09/youtube-prepares-crackdown-on-mass-produced-and-repetitive-videos-as-concern-over-ai-slop-grows/), [Social Media Today](https://www.socialmediatoday.com/news/youtube-clarifies-monetization-update-inauthentic-repeated-content/752892/)).
+
+**Real enforcement through 2026:**
+- **Late 2025:** high-volume AI channels quietly demonetized with notices citing "repetitive formats / lack of original value" ([OutlierKit](https://outlierkit.com/resources/youtube-ai-slop-crackdown-2026/)).
+- **January 2026 purge:** ~16–18 major "AI slop" channels terminated or content-wiped (11 fully terminated) — combined ~4.7B views, ~35M subs, ~$10M/yr ad revenue. Named examples: CuentosFacianantes (1.2B views, AI Dragon Ball content), Imperio de Jesus (AI religious content) ([Tubefilter](https://www.tubefilter.com/2026/01/29/youtube-ai-slop-channel-crackdown-bans/), [Perplexity AI Magazine](https://perplexityaimagazine.com/ai-news/youtube-deletes-ai-slop-channels-crackdown/)).
+- **Through 2026:** automated detection of templated/mass-produced uploads expanded; thousands of channels demonetized for "inauthentic/reused content," many without warning ([ScaleLab](https://scalelab.com/en/why-youtube-is-cracking-down-on-ai-generated-content-in-2026), [MilX](https://milx.app/en/news/why-youtube-just-suspended-thousands-of-ai-channels-and-how-to-protect-yours)).
+- **What got hit:** template slideshows + synthetic narration; AI voice over stock/reused clips with no added context; bulk-uploaded near-identical videos; fake AI news/true-crime "documentaries" ([TechCrunch](https://techcrunch.com/2025/07/09/youtube-prepares-crackdown-on-mass-produced-and-repetitive-videos-as-concern-over-ai-slop-grows/)).
+- **What passed / survived:** faceless channels with distinct editorial angle per video, human-edited scripts, varied visuals, niche educational depth ("niche educational content held up better than broad-topic channels"). Collateral damage is real: even human-voiced faceless channels report demonetization while on-camera creators with identical content are untouched — some creators now hire cheap on-camera hosts as insurance ([TheNextWeb](https://thenextweb.com/news/youtube-ai-slop-crackdown-faceless-creators-collateral-damage), [Miraflow](https://miraflow.ai/blog/can-you-monetize-faceless-youtube-channels-ai-2026)).
+
+## 3. AI Disclosure (Altered/Synthetic Content Labels)
+
+Official policy ([support.google.com/youtube/answer/14328491](https://support.google.com/youtube/answer/14328491?hl=en)): disclosure via upload checkbox is **required** when AI meaningfully generates/alters **photorealistic** content: real people saying/doing things they didn't, altered footage of real events/places, realistic scenes that never occurred.
+
+**NOT required for** (i.e., most of your pipeline is exempt): scripts/titles/outlines ("production assistance"), clearly unrealistic/animated content, color/lighting filters, captions, **voice cloning of your own voice for voiceover**. AI-generated images that are photorealistic depictions of real events/people DO need the label; stylized/illustrative AI images generally don't.
+
+**Consequences of skipping:** official wording — "manual application of a label, or penalties from YouTube, including removal of content or suspension from the YouTube Partner Program." Since **May 27, 2026**, YouTube auto-labels detected photorealistic AI content (internal signals + C2PA metadata from tools like Firefly, and its own Veo/Dream Screen), so non-disclosure gets forcibly labeled anyway. YouTube states a disclosure label alone does **not** reduce reach or monetization eligibility ([TechWyse on May 2026 update](https://www.techwyse.com/news/platform-updates/youtube-automatic-ai-labels-disclosure-may-2026), [Influencer Marketing Hub](https://influencermarketinghub.com/ai-disclosure-rules/)). Note: blog claims of a formal "three-strike / 90-day YPP suspension" ladder ([shortsfast](https://shortsfast.com/blog/youtube-ai-content-disclosure-rules-2026/)) are not confirmed in official docs — treat as unverified.
+
+## 4. Pipeline Design Checklist to Pass YPP and Stay Monetized
+
+Synthesized from official policy + enforcement patterns above ([support doc](https://support.google.com/youtube/answer/1311392?hl=en), [Miraflow](https://miraflow.ai/blog/can-you-monetize-faceless-youtube-channels-ai-2026), [Fliki](https://fliki.ai/blog/youtube-ai-demonetization), [ScaleLab](https://scalelab.com/en/why-youtube-is-cracking-down-on-ai-generated-content-in-2026)):
+
+- **Scripts:** LLM-drafted is fine (officially exempt "production assistance"), but human-edit every script for a distinct angle, specific claims, and channel voice. Never publish raw LLM output; never near-duplicate structure across videos — templated structure is the #1 detection signal.
+- **Anti-template variance:** vary video length, pacing, hook style, section order, B-roll density between uploads. "Easily replicable at scale" is the literal policy test — make each video require decisions.
+- **Visuals:** mix licensed stock + AI images + motion graphics + text overlays + custom charts; cut frequently to narration beats. Pure stock-slideshow-with-voiceover is the canonical rejection profile. Keep licenses documented for stock/music (reused-content review asks for provenance).
+- **Human touch signals:** original thumbnails, written (not auto) descriptions, pinned comments and comment replies, community posts, consistent branded intro (allowed), an "About" page describing the human behind the channel. Reviewers and automated systems both weigh channel-level authenticity.
+- **Quality floor & cadence:** don't mass-upload; 2–4 polished videos/week beats daily low-effort output. Weak videos drag channel-level standing — the policy is enforced at channel level.
+- **Before applying:** delete/private any early low-effort videos; ensure 3 recent public uploads; niche down (specific educational value survived 2026 enforcement best); enable 2FA, clean strike record.
+- **Disclosure hygiene:** tick the altered-content box only when your AI images/footage are photorealistic depictions of real people/events; label doesn't hurt monetization, non-disclosure can.
+- **After approval:** monetization is continuously re-reviewed — sudden format templating or upload-rate spikes trigger the 2026 automated flags.
+
+## 5. TTS Narration Specifically
+
+**Yes — pure TTS narration is still monetizable in 2026.** YouTube never banned AI voiceovers; the July 2025 update targets what the voice reads and what it's laid over, not the synthesis itself ([Typecast analysis of July 15 update](https://typecast.ai/learn/youtube-ai-monetization-july-15-ypp-update/), [Fliki](https://fliki.ai/blog/youtube-monetization-policy-2025), [Beverly Boy](https://beverlyboy.com/film-technology/youtube-in-2026-is-ai-generated-voice-content-still-monetizable/)).
+
+Conditions that hold up in enforcement:
+- **The script must be your original creation.** Official policy denies monetization to "content that exclusively features readings of other materials you did not originally create" — TTS reading scraped articles/Reddit posts is the classic rejection ([official doc](https://support.google.com/youtube/answer/1311392?hl=en)).
+- **Voice quality matters at review.** Robotic, flat, "generic voice used across thousands of channels" TTS is a reviewer red flag associated with spam; near-human neural voices (ElevenLabs-class) with emotional inflection and natural pacing pass when paired with original scripts and varied visuals ([FluxNote guide](https://fluxnote.io/guides/using-ai-voices-for-youtube-monetization) — vendor source, but corroborated by [Narration Box](https://narrationbox.com/blog/can-i-use-ai-voice-for-youtube-and-monetize-2025-guide-for-creators) and [Resemble AI](https://www.resemble.ai/resources/ai-voice-youtube-videos-monetize)). Use a TTS license permitting commercial/YouTube use.
+- **TTS + reused visuals = rejection; TTS + original edit = approval.** The narration is never judged alone — the demonetized 2025–26 cohort was overwhelmingly "AI voice over stock/reused clips" ([TechCrunch](https://techcrunch.com/2025/07/09/youtube-prepares-crackdown-on-mass-produced-and-repetitive-videos-as-concern-over-ai-slop-grows/)).
+- **No disclosure label needed for TTS narration itself** — synthetic voiceover (including cloning your own voice) is on the official exempt list ([disclosure doc](https://support.google.com/youtube/answer/14328491?hl=en)).
+
+**Bottom line for your build:** your planned pipeline (original LLM scripts human-edited, premium neural TTS, licensed stock + AI images, heavy varied editing, US audience) matches the profile that passed review throughout 2026 — the failure modes to engineer against are structural templating across videos, upload-rate spikes, and any video whose information exists elsewhere in the same form.

@@ -1,0 +1,148 @@
+{
+  "_comment": "Каскад LLM по КАЧЕСТВУ (топ→слабее), все OpenAI-совместимы. Несколько ключей через запятую. 429/исчерпание → cooldown ключа → следующий ключ → следующий провайдер. Активен, если есть ≥1 ключ. NVIDIA ИСКЛЮЧЁН из текста — ключ зарезервирован ТОЛЬКО под генерацию картинок (pipeline/imagegen.py, FLUX). Порядок и model-id проверены живьём 2026-06-16.",
+  "providers": [
+    {
+      "name": "github-models",
+      "enabled": true,
+      "base_url": "https://models.github.ai/inference",
+      "model": "openai/gpt-4o",
+      "key_env": "GITHUB_MODELS_TOKEN",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "#1 КАЧЕСТВО: GPT-4o бесплатно по GitHub PAT (scope models:read), но ~50/день → первые сценарии дня на топ-модели, дальше каскад падает ниже. Ключа пока нет — слот ждёт."
+    },
+    {
+      "name": "mistral",
+      "enabled": true,
+      "base_url": "https://api.mistral.ai/v1",
+      "model": "mistral-large-latest",
+      "key_env": "MISTRAL_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 120,
+      "transient_cooldown_sec": 30,
+      "free_note": "#2: Mistral Large — топ RU-качество, 3 ключа, ~1 RPM/ключ (cooldown 120с гасит rate-limit). ПРОВЕРЕНО: работает."
+    },
+    {
+      "name": "gemini",
+      "enabled": true,
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "model": "gemini-2.5-flash",
+      "key_env": "GEMINI_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 60,
+      "free_note": "#3: Gemini 2.5 Flash — сильный RU, ~250 RPD × 3 аккаунта. ПРОВЕРЕНО. (flash-lite слабее, но 1000/день — вернуть при нехватке объёма)"
+    },
+    {
+      "name": "gemini-lite",
+      "enabled": true,
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "model": "gemini-2.5-flash-lite",
+      "key_env": "GEMINI_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 60,
+      "free_note": "overflow: 2.5 Flash-Lite, те же GEMINI_API_KEY, 1500 RPD/ключ"
+    },
+    {
+      "name": "cerebras",
+      "enabled": true,
+      "base_url": "https://api.cerebras.ai/v1",
+      "model": "qwen-3-32b",
+      "key_env": "CEREBRAS_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "#4: Qwen3-32B, ~1М токенов/день, очень быстрый, без карты. Ключа пока нет."
+    },
+    {
+      "name": "groq",
+      "enabled": true,
+      "base_url": "https://api.groq.com/openai/v1",
+      "model": "openai/gpt-oss-120b",
+      "key_env": "GROQ_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "#5: openai/gpt-oss-120b — замена депрецированной llama-3.3-70b-versatile (shutdown 2026-08-16, офиц. рекомендация Groq, проверено docs/deprecations июнь 2026). Быстрый, но ключ ОБЩИЙ с lead-hunter/vizitka — ниже по приоритету, чтобы не отнимать у ботов."
+    },
+    {
+      "name": "openrouter",
+      "enabled": true,
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "key_env": "OPENROUTER_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 1800,
+      "transient_cooldown_sec": 30,
+      "free_note": "#6: Qwen3-80B free, 3 ключа; free-модели часто 429 (общие) — overflow."
+    },
+    {
+      "name": "openrouter-gemma",
+      "enabled": true,
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "google/gemma-4-26b-a4b-it:free",
+      "key_env": "OPENROUTER_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 1800,
+      "transient_cooldown_sec": 30,
+      "free_note": "#6b overflow: Gemma 4 26B A4B (MoE) free на тех же OPENROUTER_API_KEY. Id проверен на openrouter.ai (released 2026-04-03, не депрецирован, июнь 2026)."
+    },
+    {
+      "name": "openrouter-nemo",
+      "enabled": true,
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "key_env": "OPENROUTER_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 1800,
+      "transient_cooldown_sec": 30,
+      "free_note": "#7: вторая free-модель OpenRouter на тех же ключах — повышает hit-rate."
+    },
+    {
+      "name": "chutes",
+      "enabled": true,
+      "base_url": "https://llm.chutes.ai/v1",
+      "model": "Qwen/Qwen3-32B",
+      "key_env": "CHUTES_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 1800,
+      "transient_cooldown_sec": 10,
+      "free_note": "#8: ~500K токенов/день free, ключ cpk_ на chutes.ai. Ключа пока нет."
+    },
+    {
+      "name": "nvidia-nim",
+      "enabled": false,
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "model": "deepseek-ai/deepseek-v4-flash",
+      "key_env": "NVIDIA_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 600,
+      "transient_cooldown_sec": 30,
+      "free_note": "ВЫКЛ для текста НАМЕРЕННО: ключ NVIDIA зарезервирован ТОЛЬКО под генерацию картинок (imagegen.py, FLUX). Текст deepseek-v4-flash работает — включить можно, если появится отдельный NVIDIA-ключ под текст."
+    },
+    {
+      "name": "pollinations",
+      "enabled": true,
+      "no_key": true,
+      "base_url": "https://text.pollinations.ai/openai",
+      "model": "openai",
+      "json_mode": true,
+      "cooldown_sec": 600,
+      "transient_cooldown_sec": 30,
+      "free_note": "ресёрч р3: БЕСПЛАТНО БЕЗ КЛЮЧА (GPT-5/Claude/Gemini через один URL, fair-use). Последний рубеж каскада — когда у всех ключей кончилась квота, фабрика всё равно не встанет. ПРОВЕРЕНО 2026-06-17."
+    },
+    {
+      "name": "xai-grok",
+      "enabled": false,
+      "base_url": "https://api.x.ai/v1",
+      "model": "grok-3-mini",
+      "key_env": "XAI_API_KEY",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "ВЫКЛ: $25 кредитов сгорают за 30 дней"
+    }
+  ]
+}

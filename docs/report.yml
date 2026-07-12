@@ -1,0 +1,53 @@
+name: daily-report
+
+# Ежедневный отчёт по каналам владельцу в TG: подписчики + суммарные просмотры +
+# топ-видео на нишу + дневной прирост. 18:00 UTC = 21:00 МСК. Плюс лёгкий preflight токенов.
+on:
+  schedule:
+    - cron: "0 18 * * *"    # 21:00 МСК
+  workflow_dispatch:
+
+concurrency:
+  group: daily-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write   # commit-back снапшота state/report_snapshot.json штатным github.token
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python-зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Записать секреты
+        env:
+          SECRETS_ENV: ${{ secrets.SECRETS_ENV }}
+        run: |
+          mkdir -p ~/.config/content-factory
+          printf '%s' "$SECRETS_ENV" > ~/.config/content-factory/secrets.env
+      - name: Preflight токенов площадок (алерт в TG при протухании)
+        run: python3 tools/preflight.py || true
+      - name: Ежедневный отчёт по каналам → TG
+        run: python3 pipeline/daily_report.py --send
+      - name: Сохранить снапшот отчёта (для дневных дельт) — коммит-бэк
+        if: always()
+        run: |
+          git config user.email "autopilot@content-factory"
+          git config user.name "cf-daily-report"
+          if [ -z "$(git status --porcelain state/report_snapshot.json 2>/dev/null)" ]; then
+            echo "снапшот без изменений — коммитить нечего"; exit 0
+          fi
+          git add state/report_snapshot.json
+          git commit -m "state: снапшот отчёта [skip ci]" || { echo "нечего коммитить"; exit 0; }
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin master && git push origin master && exit 0
+            echo "push попытка $i не удалась, повтор через 5с"; sleep 5
+          done
+          echo "::warning::коммит-бэк снапшота не удался — дневная дельта может сброситься"

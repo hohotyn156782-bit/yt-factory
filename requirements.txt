@@ -1,0 +1,18 @@
+# Ядро (обязательно)
+kokoro-onnx>=0.5.0   # TTS-движок по умолчанию (Kokoro-82M, Apache-2.0, CPU; тянет espeakng-loader)
+edge-tts>=7.2.8      # фолбэк-озвучка (EN нейроголоса Azure)
+requests
+
+# YouTube-адаптер (автопостинг после аудита API + OAuth-утилита)
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+
+# Сборка/обложки/субтитры/тренды
+Pillow              # обложки 1280×720 (pipeline/thumbnail.py)
+yake                # подсветка ключевых слов в popin-субтитрах Shorts (pipeline/subtitles.py)
+trendspyg           # живой Google Trends — источник трендов (pipeline/parser.py)
+apprise             # резервный канал критичных алертов поверх Telegram (reporter.py)
+
+# ffmpeg/ffprobe — системные, ставятся отдельно (в CI через apt)

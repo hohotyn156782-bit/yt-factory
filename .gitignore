@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv*/
+
+# тяжёлые данные CI-ранов: коммитим только лёгкое состояние (history/cooldowns/db/cursor)
+state/cfdata/cache/
+state/cfdata/output/
+state/cfdata/media_assets/
+state/cfdata/publish/
+state/cfdata/logs/
+state/cfdata/music/
+
+# локальные секреты никогда не в гите
+secrets.env
+client_secret*.json
+yt_token*.json

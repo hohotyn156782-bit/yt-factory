@@ -1,0 +1,544 @@
+{
+  "_comment": "Реестр ниш = контент-стратегия. Стратегия: несколько охватных каналов под трафик (монетизация рекламой) + 1 бренд-канал под студию {P}. engine: edge (быстро) | xtts (живее, голос-диктор, через .venv-xtts). voice: для edge — id голоса (`edge-tts --list-voices`); для xtts — имя диктора (Luis Moray и др., см. README). platforms: youtube|tiktok|instagram|vk.",
+  "niches": [
+    {
+      "id": "ai_lifehacks",
+      "enabled": true,
+      "role": "brand",
+      "lang": "ru",
+      "title": "AI и автоматизация — фишки",
+      "engine": "elevenlabs",
+      "voice": "Adam",
+      "rate": "+0%",
+      "topic_brief": "Короткие мощные факты и практичные лайфхаки про нейросети, AI-инструменты, автоматизацию рутины и продуктивность. Каждое видео = одна конкретная фишка/инструмент/неожиданный факт, который зритель применит сегодня. Удивляй и давай пользу — никакой воды.",
+      "tone": "энергично, по делу, обращение на 'ты', как друг, который шарит в технологиях и делится золотом",
+      "palette": [
+        [
+          "0a3d2e",
+          "3ddc97"
+        ],
+        [
+          "08233a",
+          "2aa6ff"
+        ],
+        [
+          "1a1030",
+          "9b5cff"
+        ],
+        [
+          "2a0a1e",
+          "ff5c8a"
+        ]
+      ],
+      "broll_hint": "technology, artificial intelligence, computer code, data center, futuristic city, neon abstract, robot, smartphone",
+      "hashtags": [
+        "#нейросети",
+        "#ai",
+        "#автоматизация",
+        "#лайфхак",
+        "#технологии",
+        "#продуктивность",
+        "#chatgpt"
+      ],
+      "cta": "Подпишись — тут такие фишки каждый день",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "stock",
+      "rss_channels_comment": "Опционально: YouTube channel_id (UC...) конкурентов ниши — их свежие заголовки видео мониторятся через публичный RSS (без ключа) как сигнал трендов. Пустой массив = источник выключен (no-op).",
+      "rss_channels": [
+        "UCbfYPyITQ-7l4upoX8nvctg",
+        "UCUyDOdBWhC1MCxEjC46d-zw"
+      ],
+      "has_yt_tiktok": true
+    },
+    {
+      "id": "mind_facts",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "title": "Психология и мозг — факты",
+      "engine": "elevenlabs",
+      "voice": "Sarah",
+      "rate": "+12%",
+      "topic_brief": "Цепляющие факты о психологии, работе мозга, поведении людей, когнитивных искажениях, памяти и восприятии. Одно видео = один удивительный факт или приём, который меняет взгляд на себя. Без псевдонауки — только проверенные эффекты.",
+      "tone": "интригующе, спокойно-уверенно, будто открываешь секрет о человеческой природе",
+      "palette": [
+        [
+          "140a28",
+          "9b5cff"
+        ],
+        [
+          "0a1228",
+          "5c8aff"
+        ],
+        [
+          "1e0a28",
+          "c45cff"
+        ]
+      ],
+      "broll_hint": "human brain, neurons, psychology, people faces, abstract mind, cosmos, slow motion crowd, eye macro",
+      "hashtags": [
+        "#психология",
+        "#мозг",
+        "#факты",
+        "#саморазвитие",
+        "#интересное",
+        "#наука"
+      ],
+      "cta": "Подпишись — узнаешь о себе то, чего не знал",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "stock",
+      "rss_channels": [],
+      "has_yt_tiktok": true
+    },
+    {
+      "id": "history_facts",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "title": "История — удивительные факты",
+      "engine": "elevenlabs",
+      "voice": "George",
+      "rate": "+0%",
+      "topic_brief": "Малоизвестные и шокирующие факты из истории: события, личности, изобретения, странные законы и совпадения. Одно видео = одна история с неожиданным поворотом. Только реальные факты, без мифов.",
+      "tone": "как рассказчик у костра — интрига в первой фразе, развязка в конце",
+      "palette": [
+        [
+          "1a1205",
+          "e6b34d"
+        ],
+        [
+          "140d08",
+          "d9772e"
+        ],
+        [
+          "1a0f0a",
+          "b8924a"
+        ]
+      ],
+      "broll_hint": "ancient ruins, old map, vintage film, historical monument, castle, museum, parchment, candle",
+      "hashtags": [
+        "#история",
+        "#факты",
+        "#интересное",
+        "#прошлое",
+        "#образование"
+      ],
+      "cta": "Подпишись — история, которую не рассказывают в школе",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "stock",
+      "has_yt_tiktok": false
+    },
+    {
+      "id": "money_facts",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "title": "Деньги и финансы — факты",
+      "engine": "elevenlabs",
+      "voice": "Alice",
+      "rate": "+12%",
+      "topic_brief": "Факты и принципы финансовой грамотности, психологии денег, привычек богатых, разумного управления личными финансами. Одно видео = одна идея. Без инвест-советов и обещаний дохода — только проверенные принципы и любопытные факты.",
+      "tone": "уверенно, спокойно, как наставник, который объясняет сложное просто",
+      "palette": [
+        [
+          "1a1505",
+          "e6b800"
+        ],
+        [
+          "0a1a0a",
+          "2ecc71"
+        ],
+        [
+          "1a0a0a",
+          "e67e22"
+        ]
+      ],
+      "broll_hint": "money, finance, city skyline, business, coins, stock market chart, luxury, success",
+      "hashtags": [
+        "#деньги",
+        "#финансы",
+        "#финграмотность",
+        "#саморазвитие",
+        "#бизнес",
+        "#мышление"
+      ],
+      "cta": "Сохрани и подпишись, чтобы не потерять",
+      "platforms": [
+        "vk"
+      ],
+      "broll_mode": "stock",
+      "has_yt_tiktok": false
+    },
+    {
+      "id": "ai_lifehacks_en",
+      "enabled": false,
+      "role": "reach",
+      "lang": "en",
+      "title": "AI hacks (global)",
+      "engine": "elevenlabs",
+      "voice": "Adam",
+      "rate": "+0%",
+      "topic_brief": "Short punchy facts and practical hacks about AI tools, automation, and productivity. One video = one concrete tool/tip/surprising fact the viewer can use today. Surprise and deliver value — no fluff.",
+      "tone": "high-energy, direct, second person 'you', like a friend who knows tech and shares gold",
+      "palette": [
+        [
+          "0a3d2e",
+          "3ddc97"
+        ],
+        [
+          "08233a",
+          "2aa6ff"
+        ],
+        [
+          "1a1030",
+          "9b5cff"
+        ]
+      ],
+      "broll_hint": "technology, artificial intelligence, computer code, data center, futuristic city, neon abstract, robot",
+      "hashtags": [
+        "#ai",
+        "#aitools",
+        "#automation",
+        "#productivity",
+        "#tech",
+        "#chatgpt",
+        "#lifehack"
+      ],
+      "cta": "Follow for daily AI hacks",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram"
+      ],
+      "broll_mode": "stock",
+      "has_yt_tiktok": false
+    },
+    {
+      "id": "personal_brand",
+      "enabled": true,
+      "role": "brand",
+      "lang": "ru",
+      "title": "BaronPavel — боты/сайты/автоматизация (личный бренд)",
+      "engine": "elevenlabs",
+      "voice": "Eric",
+      "rate": "+0%",
+      "speed": 1.15,
+      "topic_brief": "Личный бренд Паши Фёдорова — разработчика, который под ключ делает Telegram-ботов, сайты/лендинги и автоматизации на Python/n8n/AI для бизнеса. Контент: польза владельцам бизнеса (что зря делается вручную и как автоматизировать), мини-кейсы (механика пользы без выдуманных цифр), build-in-public (что собрал/как устроено), горячие тейки про AI и боты для бизнеса, разбор бесплатных инструментов. Цель — привлекать клиентов и растить охват.",
+      "tone": "практик от первого лица, по делу, экспертно но без пафоса, build-in-public, на 'ты'",
+      "palette": [
+        [
+          "0a3d2e",
+          "3ddc97"
+        ],
+        [
+          "08233a",
+          "2aa6ff"
+        ],
+        [
+          "10101a",
+          "9b5cff"
+        ]
+      ],
+      "broll_hint": "code on screen, telegram bot, automation workflow, dashboard, developer desk, AI interface, startup",
+      "hashtags": [
+        "#боты",
+        "#автоматизация",
+        "#нейросети",
+        "#разработка",
+        "#бизнес",
+        "#telegram"
+      ],
+      "cta": "Нужен бот/сайт/автоматизация — пиши в личку",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "vk",
+        "threads"
+      ],
+      "broll_mode": "stock",
+      "has_yt_tiktok": true
+    },
+    {
+      "id": "talking_objects",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "format": "story",
+      "title": "Вещи с характером (AI Talking Objects)",
+      "engine": "elevenlabs",
+      "voice": "Charlie",
+      "rate": "+0%",
+      "topic_brief": "Обычный предмет рассказывает историю ОТ ПЕРВОГО ЛИЦА с характером и сарказмом (кредитка, зеркало в лифте, старый телефон, забытая сумка). Юмор + неожиданный твист/мораль в конце. Явный вымысел, развлекательно.",
+      "tone": "живой, с юмором и характером, как будто предмет реально говорит; интрига → твист",
+      "palette": [
+        [
+          "0a0a0f",
+          "ffd93d"
+        ],
+        [
+          "10131a",
+          "3ddc97"
+        ],
+        [
+          "140d08",
+          "ff6b35"
+        ]
+      ],
+      "broll_hint": "object close-up, everyday items, hands holding object, product macro, wallet, phone, mirror, bag",
+      "hashtags": [
+        "#вещисхарактером",
+        "#история",
+        "#юмор",
+        "#shorts",
+        "#вайб"
+      ],
+      "cta": "Подпишись — какой предмет озвучить дальше? Пиши в комменты",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "ai_images",
+      "has_yt_tiktok": false
+    },
+    {
+      "id": "business_stories",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "format": "story",
+      "category": "business",
+      "title": "Бизнес-истории: взлёты и крахи",
+      "engine": "elevenlabs",
+      "voice": "George",
+      "rate": "+0%",
+      "topic_brief": "Драматичные истории компаний и предпринимателей: одно решение, которое изменило всё; крахи и ва-банк; происхождение брендов. По мотивам публичных событий/закрытых компаний (без клеветы на живых людей). Хук → нагнетание → твист.",
+      "tone": "напряжённый рассказчик-документалист, ставки растут, в конце — поворот",
+      "palette": [
+        [
+          "0a0e14",
+          "e6b34d"
+        ],
+        [
+          "0d1117",
+          "3ddc97"
+        ],
+        [
+          "10131a",
+          "d9772e"
+        ]
+      ],
+      "broll_hint": "office building, money cash, city skyline at night, business meeting, factory, stock chart, handshake, newspaper",
+      "hashtags": [
+        "#бизнес",
+        "#истории",
+        "#деньги",
+        "#успех",
+        "#провал"
+      ],
+      "cta": "Сохрани — и часть 2 завтра. Подпишись, чтобы не потерять",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "ai_images",
+      "has_yt_tiktok": true,
+      "subtitle_mode": "karaoke"
+    },
+    {
+      "id": "mystic_stories",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "format": "story",
+      "category": "mystic",
+      "disclaimer": "Художественная история. Все события и персонажи вымышлены.",
+      "title": "Мистика и тёмные истории",
+      "engine": "elevenlabs",
+      "voice": "George",
+      "rate": "+0%",
+      "topic_brief": "Вымышленные мистические/паранормальные истории и городские легенды с неожиданным твистом. Явный вымысел (метка). БЕЗ реальных живых людей и реальных трагедий.",
+      "tone": "атмосферный рассказчик, нагнетание, мурашки, твист в конце",
+      "palette": [
+        [
+          "08080c",
+          "6a5acd"
+        ],
+        [
+          "0a0a10",
+          "b8924a"
+        ],
+        [
+          "0c0c14",
+          "8a2be2"
+        ]
+      ],
+      "broll_hint": "dark forest night, empty corridor, fog, abandoned house, candle, rain on window, moonlight, old door",
+      "hashtags": [
+        "#мистика",
+        "#страшныеистории",
+        "#тайны",
+        "#shorts",
+        "#крипи"
+      ],
+      "cta": "Часть 2 завтра. Подпишись, если мурашки",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "ai_images",
+      "has_yt_tiktok": false,
+      "subtitle_mode": "karaoke"
+    },
+    {
+      "id": "what_if",
+      "enabled": false,
+      "role": "reach",
+      "lang": "ru",
+      "format": "story",
+      "category": "whatif",
+      "title": "Что если — альтернативная история",
+      "engine": "elevenlabs",
+      "voice": "Charlie",
+      "rate": "+0%",
+      "topic_brief": "Гипотетические развилки истории (России и мира): «что если бы [событие] пошло иначе». Явно контрфактично, гонит споры в комментах. Опираться на реальные факты до точки развилки.",
+      "tone": "рассуждающий рассказчик, интрига, провокация на спор",
+      "palette": [
+        [
+          "0a0e14",
+          "e6b34d"
+        ],
+        [
+          "10131a",
+          "3ddc97"
+        ],
+        [
+          "140d08",
+          "d9772e"
+        ]
+      ],
+      "broll_hint": "historical map, vintage city, flags, archive footage, monuments, old documents, war map",
+      "hashtags": [
+        "#чтоесли",
+        "#история",
+        "#альтернатива",
+        "#shorts",
+        "#спор"
+      ],
+      "cta": "А ты как думаешь? Пиши в комменты",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "vk"
+      ],
+      "broll_mode": "ai_images",
+      "has_yt_tiktok": false
+    },
+    {
+      "id": "soviet_things",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "format": "story",
+      "category": "soviet",
+      "title": "История советских вещей",
+      "engine": "elevenlabs",
+      "voice": "Eric",
+      "rate": "+0%",
+      "topic_brief": "Происхождение и неожиданные факты о знакомых советских предметах, продуктах, брендах. Реальные факты + нарратив с поворотом. Ностальгия + любопытство.",
+      "tone": "тёплый рассказчик с ноткой ностальгии, интрига → раскрытие",
+      "palette": [
+        [
+          "1a1205",
+          "e6b34d"
+        ],
+        [
+          "140d08",
+          "d9772e"
+        ],
+        [
+          "1a0f0a",
+          "b8924a"
+        ]
+      ],
+      "broll_hint": "soviet era objects, vintage products, old factory, retro kitchen, USSR archive, vintage film grain",
+      "hashtags": [
+        "#ссср",
+        "#история",
+        "#ностальгия",
+        "#факты",
+        "#shorts"
+      ],
+      "cta": "Подпишись — что ещё из детства разобрать?",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "ai_images",
+      "has_yt_tiktok": false
+    },
+    {
+      "id": "psy_stories",
+      "enabled": true,
+      "role": "reach",
+      "lang": "ru",
+      "format": "story",
+      "category": "psy_story",
+      "disclaimer": "История собирательная, герой вымышлен.",
+      "title": "Психологические истории",
+      "engine": "elevenlabs",
+      "voice": "Sarah",
+      "rate": "+0%",
+      "topic_brief": "Вымышленный анонимный герой + реальный психологический феномен (прокрастинация, нарциссы, синдром самозванца, выгорание). «История одного человека» → инсайт. Зритель узнаёт себя.",
+      "tone": "тёплый, эмпатичный рассказчик; «это про тебя»; мягкий инсайт в конце",
+      "palette": [
+        [
+          "0d0d14",
+          "7c5cff"
+        ],
+        [
+          "10101a",
+          "3ddc97"
+        ],
+        [
+          "141019",
+          "ff6b9d"
+        ]
+      ],
+      "broll_hint": "person at home alone, coffee cup, looking out window, phone in hand, empty desk, city at dusk, walking alone",
+      "hashtags": [
+        "#психология",
+        "#история",
+        "#саморазвитие",
+        "#этопроменя",
+        "#shorts"
+      ],
+      "cta": "Сохрани, если узнал себя. Подпишись",
+      "platforms": [
+        "vk",
+        "instagram",
+        "threads"
+      ],
+      "broll_mode": "ai_images",
+      "has_yt_tiktok": true,
+      "subtitle_mode": "karaoke"
+    }
+  ]
+}
