@@ -5,6 +5,25 @@
 
 ---
 
+## Часть 0. Три команды в терминале (~2 мин, permission-gate Claude Code)
+
+Клод не имеет права сам публиковать репо и писать API-ключи в GitHub-секреты. Запусти в сессии Claude Code через `!` (или в обычном терминале из `~/projects/yt-factory`):
+
+```bash
+# 1. Сделать репо публичным (безлимитные минуты GitHub Actions; сейчас private)
+! gh repo edit hohotyn156782-bit/yt-factory --visibility public --accept-visibility-change-consequences
+
+# 2. Залить секреты в Actions (файл уже подготовлен, 13 ключей, права 600)
+! gh secret set SECRETS_ENV -R hohotyn156782-bit/yt-factory < ~/.config/yt-factory/SECRETS_ENV_github.txt
+
+# 3. Тестовый ран на CI (быстрый шортс; итог смотри в Actions → артефакт + TG-карточка)
+! gh workflow run autopilot.yml -R hohotyn156782-bit/yt-factory -f output=shorts
+```
+
+Если файл из п.2 потерялся — скажи Клоду «пересобери SECRETS_ENV», он соберёт заново из `Desktop/API_KEYS.env` + `~/.config/yt-factory/secrets.env`.
+
+---
+
 ## Часть 1. Google-аккаунт и канал (~15 мин)
 
 1. Создай **новый Google-аккаунт** (не основной): accounts.google.com → «Создать аккаунт» → «Для себя».
