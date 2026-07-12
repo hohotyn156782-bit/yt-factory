@@ -618,6 +618,7 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
     # mixed: доля AI-слотов из ниши; интро-слоты всегда сток (живое движение важнее в первые 15с)
     ai_ratio = float(niche.get("broll_ai_ratio", 0.35) or 0.0) if mode == "mixed" else 0.0
     ai_done = 0
+    era_ai_frames: list[dict] = []   # успешные AI-кадры эпохо-слотов — пул для повтора при исчерпании квот
 
     cursor = 0.0
     for i, dur in enumerate(slot_plan):
@@ -638,13 +639,14 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
         if not _qtok(search_query):
             search_query = fallback_q or search_query
         # mixed: этот слот — AI-картинка? Равномерное распределение доли ai_ratio по таймлайну,
-        # интро (первые LONG_INTRO_SLOTS) не трогаем. Эпохо-специфичный запрос (год/эра) идёт
-        # в AI ВНЕ квоты ratio: стока 1860-х не существует, Pexels отдаёт современный город
-        # в джинсах — анахронизм хуже, чем лишний FLUX-кадр (дневной лимит NVIDIA всё равно
-        # гейтит в _ai_image_slot: при исчерпании item=None → сток-каскад).
+        # интро (первые LONG_INTRO_SLOTS) не трогаем — КРОМЕ эпохо-запросов. Эпохо-специфичный
+        # запрос (год/эра) идёт в AI ВНЕ квоты ratio и даже в интро: стока 1860-х не существует,
+        # Pexels отдаёт современный город в джинсах — анахронизм в первых секундах хуже всего
+        # (дневной лимит NVIDIA всё равно гейтит в _ai_image_slot: item=None → era-фолбэк ниже).
         era_q = bool(_ERA_RE.search(search_query))
-        ai_slot = (mode == "mixed" and i >= len(LONG_INTRO_SLOTS)
-                   and (era_q or ai_done < ai_ratio * (i + 1 - len(LONG_INTRO_SLOTS))))
+        ai_slot = (mode == "mixed"
+                   and (era_q or (i >= len(LONG_INTRO_SLOTS)
+                                  and ai_done < ai_ratio * (i + 1 - len(LONG_INTRO_SLOTS)))))
         # #кач: внутри-видео дедуп AI-кадров — повтор того же запроса → добавляем вариацию композиции,
         # чтобы FLUX дал ДРУГОЙ кадр (seed уже разный, но одинаковый промпт даёт похожую сцену).
         if mode in ("ai_images", "ai_video_hook", "depth_video") or ai_slot:
@@ -659,6 +661,8 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
             item = _ai_image_slot(search_query, niche, workdir, i, character=character)
             if item:
                 ai_done += 1                              # квота исчерпана/сбой → item=None → сток-каскад ниже
+                if era_q:
+                    era_ai_frames.append(dict(item))
 
         if mode == "depth_video":                            # AI-картинка → DepthFlow параллакс-видео
             item = _ai_depth_slot(search_query, niche, workdir, i, dur)
@@ -674,6 +678,23 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
                             "source_url": src_url, "query": search_query}
             if item is None:                                  # основная масса — AI-картинка
                 item = _ai_image_slot(search_query, niche, workdir, i, character=character)
+
+        if item is None and era_q:
+            # эпохо-слот остался без AI-кадра (квоты NVIDIA/Pollinations исчерпаны или сбой):
+            # современный сток под нарратив 1860-х = анахронизм (крипто-терминал в видео про
+            # Рокфеллера — реальный случай). Сначала настоящая архивная плёнка (Internet
+            # Archive, PD), затем повтор уже сгенерированного AI-кадра эпохи — панорама
+            # в assemble идёт другим направлением, повтор мягче анахронизма.
+            res = _archive_org(search_query, used, core.CACHE_DIR)
+            if res:
+                path, src_url = res
+                downloaded.append((path, src_url))
+                item = {"path": path, "kind": "stock", "source": "archive_org",
+                        "source_url": src_url, "query": query}
+            elif era_ai_frames:
+                prev = era_ai_frames[i % len(era_ai_frames)]
+                item = {**prev, "query": query}
+                core.log("broll era reuse", level="debug", slot=i, from_q=prev.get("query"), q=query)
 
         if item is None:                                      # фолбэк: сток (Pexels→Pixabay→Coverr→NASA→Archive)
             res = (_pexels(search_query, used, core.CACHE_DIR) or _pixabay(search_query, used, core.CACHE_DIR)

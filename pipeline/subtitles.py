@@ -287,6 +287,16 @@ def _srt_cues(words: list[dict]) -> list[dict]:
         if c["end"] - c["start"] > SRT_MAX_DUR:
             c["end"] = c["start"] + SRT_MAX_DUR
         c["end"] = max(c["end"], c["start"] + 0.3)   # страховка от нулевой длительности
+
+    # монотонность блоков: пословные тайминги Groq могут перекрываться на стыках чанков →
+    # старт титра раньше конца предыдущего = формально невалидный SRT (перекрытие блоков)
+    prev_end = 0.0
+    for c in merged:
+        if c["start"] < prev_end:
+            c["start"] = prev_end
+        if c["end"] < c["start"] + 0.3:
+            c["end"] = c["start"] + 0.3
+        prev_end = c["end"]
     return merged
 
 

@@ -313,6 +313,9 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
         f"JSON OUTPUT FORMAT: hook + 3-5 segments + outro.\n"
         f"  • hook — ≤14 words using one of the formulas above, stacking 2 triggers; opens a loop. "
         f"NO 'hey guys / in this video / today'.\n"
+        f"  • TRUTH RULE: every factual claim in hook/title/segments must be TRUE and verifiable. "
+        f"NEVER invent bans, laws, deaths or 'illegal today' angles for drama — fabricated claims "
+        f"kill the channel (YouTube inauthentic-content policy).\n"
         f"  • segments — 4-6 items, 1-2 sentences each; every segment closes one micro-question and OPENS the next. "
         f"Do NOT reveal the main payoff/name before the last segment. If the total runs under 70 words, "
         f"add another segment: the video must not be shorter than ~30 seconds.\n"
@@ -585,8 +588,9 @@ def _title_variants(sc: dict, niche: dict, n: int = 5) -> dict:
                       "outro": sc.get("outro", "")}, ensure_ascii=False)
     system = (
         "You write clickable YouTube Shorts titles. From the topic and hook, give 5 DIFFERENT titles "
-        "(each ≤60 chars: number / curiosity / pattern-break / benefit; no clickbait lies, no hashtags), "
-        'then pick the strongest. Return STRICT JSON: {"variants": ["t1",...,"t5"], "best_index": 0}')
+        "(each ≤60 chars: number / curiosity / pattern-break / benefit; no clickbait lies, no hashtags). "
+        "Every factual claim in a title must be TRUE — never invent bans/laws/'illegal' angles. "
+        'Then pick the strongest. Return STRICT JSON: {"variants": ["t1",...,"t5"], "best_index": 0}')
     # вирал-обучение: проверенные ФОРМЫ заголовков топ-роликов ниши → в промпт как структура-вдохновение
     tp = [p for p in (_core.sanitize_external(x) for x in (_viral_brief_for(niche).get("title_patterns") or [])[:5]) if p]
     if tp:

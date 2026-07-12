@@ -188,6 +188,9 @@ def post_youtube(niche_id: str) -> list:
     note = (f"\n\n📦 Файл видео: артефакт рана CI → {_run_url()}" if _run_url() else "")
     if meta.get("ai_disclosure"):
         note += "\n⚠️ AI-disclosure: при загрузке поставь галку Altered content = YES"
+    if (meta.get("qa") or {}).get("forced"):
+        issues = "; ".join(str(x) for x in ((meta.get("qa") or {}).get("issues") or []))[:300]
+        note += f"\n🔴 QA-форс: визуальные артефакты не исправлены за все попытки — глянь видео перед выкладкой. {issues}"
     extras = {"thumb": meta.get("thumbnail"), "description": (description + note).strip()}
     ok, info = tg_queue.send_item("youtube", meta["video"], title, tags, _eng_question(sc),
                                   channel=niche.get("title", ""), niche=niche_id, extras=extras)

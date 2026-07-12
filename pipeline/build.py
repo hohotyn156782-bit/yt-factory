@@ -232,13 +232,6 @@ def _build_once(niche_id: str, topic: str | None = None, broll_mode: str | None 
         # Акцент теперь только в субтитрах: подсвечиваемое жёлтым слово само увеличивается (popin 122%).
         video = assemble.render(clips, full_audio, total, ass, out_dir / "video.mp4",
                                 music_path=_pick_music(), workdir=work, accents=None)
-        # рекламный баннер NightFox VPN поверх готового видео (изолированный пост-шаг,
-        # не трогает рендер; env VPN_BANNER=0 отключает). До QA → QA проверит итог с баннером.
-        try:
-            from pipeline import banner
-            banner.overlay(video, niche_id=niche_id)   # личный бренд (personal_brand) баннер не получает
-        except Exception as e:  # noqa: BLE001
-            core.log_error("banner", e, niche=niche_id)
         duration = core.media_duration(video)
 
         # QA-тестер: тех-косяки (рассинхрон/фриз/разрешение) + AI-зрение (аномалии людей/текста)
@@ -322,9 +315,6 @@ def _build_once(niche_id: str, topic: str | None = None, broll_mode: str | None 
     post_txt = [
         f"# {sc['topic']}  ({duration:.1f}s · {niche_id})", "",
         "── YouTube Shorts ──", captions["youtube"]["title"], "", captions["youtube"]["description"], "",
-        "── TikTok ──", captions["tiktok"]["caption"], "",
-        "── Instagram Reels ──", captions["instagram"]["caption"], "",
-        "── VK ──", captions["vk"]["caption"], "",
     ]
     (out_dir / "POST.txt").write_text("\n".join(post_txt), encoding="utf-8")
 
@@ -573,6 +563,20 @@ def build_video(niche_id: str, topic: str | None = None, broll_mode: str | None 
     if best is not None:
         best["qa"]["ok"] = True                  # разрешаем публикацию (autopilot гейтит по qa.ok)
         best["qa"]["forced"] = True              # честно помечаем: опубликовано несмотря на артефакты
+        # форс происходит ПОСЛЕ того, как _build_once* записал meta.json и решил не копировать
+        # видео в publish/ (qa.ok был false) → синхронизируем диск: иначе CI-артефакт без mp4,
+        # а в meta.json навсегда qa.ok=false без флага forced
+        try:
+            out_dir = pathlib.Path(best["dir"])
+            best["meta"]["qa"] = best["qa"]
+            (out_dir / "meta.json").write_text(
+                json.dumps(best["meta"], ensure_ascii=False, indent=2), encoding="utf-8")
+            if not best.get("publish"):
+                publish_path = core.PUBLISH_DIR / f"{out_dir.name}.mp4"
+                shutil.copy2(best["video"], publish_path)
+                best["publish"] = str(publish_path)
+        except Exception as e:  # noqa: BLE001
+            core.log_error("build.force_sync", e)
         _commit(best)
         core.log(f"Форс-публикация лучшего из {max_attempts} (визуальные артефакты не исправлены): "
                  f"{best['meta']['topic']}", level="warn", niche=niche_id,
