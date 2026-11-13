@@ -70,6 +70,14 @@
 - [ ] После аудита Google: YT_AUTO=1 (прямой автопостинг + publishAt)
 - [ ] Позже: report.yml (ежедневная сводка, ждёт YOUTUBE_API_KEY), музыка в MUSIC_DIR, fal.ai i2v вставки ($24/мес опция), 2-й канал space
 
+## Сеть автоканалов — 2026-11-13 (проверено)
+- 4 канала (Twister Logic, Starlog Daily, Gearbox Brief, Pin Drop Why); Jaw Ledger отключён — владелец не стал подтверждать телефон.
+- frame_check: флаги + relevance 0-10 + rule_violation, устойчивый парсинг; тест 13/16 кадров по 4 стилям; verifier PARTIAL → 2 дефекта исправлены и перепроверены моками + живым вызовом.
+- Локально net_machines «Torque converter lockup lag»: 11/11 кадров FLUX, в TG.
+- Коммит 6ee8fbd запушен; CI workflow_dispatch net_weather (run 43424781156) ✓ 55 мин, «Ball Lightning Explained», 10/11 FLUX, в TG.
+- ⚠️ В CI нет YOUTUBE_API_KEY → тема дня из селектора, не из трендов. Владелец: `gh secret set SECRETS_ENV -R hohotyn156782-bit/yt-factory < ~/.config/yt-factory/ci_secrets.env` (мне запрещено классификатором).
+- Не сделано: тест длинного ролика.
+
 ## Грабли и уроки этого проекта
 - (из content-factory) yt-dlp виснет на CI (YouTube банит IP GitHub) — на CI отключать (`CF_NO_YTDLP`).
 - (из content-factory) GitHub Actions джоб ≤2ч → бюджет времени на ран + per-niche таймаут обязательны.
