@@ -27,7 +27,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 200
     permissions:
       contents: write
     env:
@@ -35,7 +35,11 @@ jobs:
       CF_DATA_ROOT: ${{ github.workspace }}/state/cfdata
       CF_NO_YTDLP: "1"
     steps:
+      # ref: master — иначе берётся SHA момента постановки в очередь, и ран, ждавший в concurrency,
+      # не видит state/ предыдущего рана → конфликт factory.db при коммит-бэке.
       - uses: actions/checkout@v4
+        with:
+          ref: master
       - name: Выбрать нишу (по cron или вручную)
         id: pick
         env:
@@ -104,7 +108,9 @@ jobs:
           git add state/
           git commit -m "state: network $NICHE [skip ci]" || exit 0
           for i in 1 2 3 4 5; do
-            git pull --rebase --autostash origin master && git push origin master && exit 0
+            # -X theirs: при конфликте state/ побеждает этот ран (factory.db бинарный, слить нельзя)
+            git pull --rebase -X theirs origin master && git push origin master && exit 0
+            git rebase --abort 2>/dev/null || true
             sleep 5
           done
           echo "::error::коммит-бэк state/ не удался"; exit 1

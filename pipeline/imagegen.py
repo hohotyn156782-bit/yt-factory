@@ -8,6 +8,7 @@
 (FLUX, без ключа, проверено). Gemini-слот оставлен: включится сам, если на ключ подключат биллинг.
 """
 import os
+import re
 import time
 import json
 import base64
@@ -79,6 +80,12 @@ def _gemini_keys() -> list[str]:
     return [k.strip() for k in os.environ.get("GEMINI_API_KEY", "").split(",") if k.strip()]
 
 
+_HUMAN_WORDS = (r"\b(crowds?|people|persons?|man|men|woman|women|kids?|children|boys?|girls?|astronauts?|"
+                r"astronomers?|scientists?|engineers?|workers?|drivers?|pilots?|tourists?|spectators?|"
+                r"residents?|locals|villagers|families|hands?|faces?|onlookers?|watching|pointing|holding|looking at|"
+                r"standing|walking)\b")
+
+
 def prompt_for(query: str, niche: dict, character: str = "") -> str:
     """EN-запрос сегмента → полноценный промпт фотореалистичной сцены под АКТИВНЫЙ формат
     (core.ACTIVE_FORMAT в момент вызова: long → 16:9 widescreen, short → 9:16 vertical).
@@ -89,6 +96,10 @@ def prompt_for(query: str, niche: dict, character: str = "") -> str:
     if style:   # ниши сети: у каждого канала свой узнаваемый стиль (анти-«однообразный контент»)
         orient = ("16:9 widescreen frame, wide composition" if core.ACTIVE_FORMAT == "long" else
                   "9:16 vertical frame, tall vertical composition, subject centered and fully inside the frame")
+        # Каналы сети людей не рисуют, а сценарий всё равно просит «crowds watching…» — FLUX тогда
+        # рисует толпу и кадр уходит в брак. Убираем людей из сцены, остаётся обстановка.
+        q = re.sub(_HUMAN_WORDS, "", q, flags=re.I)
+        q = re.sub(r"\s{2,}", " ", q).strip(" ,") or niche.get("broll_hint", "landscape")
         subj = f"{character}. Scene: {q}" if character else q
         return (f"{style['prefix']}, {subj}, {style.get('suffix', '')}, "
                 "no text, no letters, no captions, no signage, no logos, no watermark, "
@@ -368,6 +379,8 @@ def frame_check(path: str, niche: dict, query: str = "") -> dict:
         return {"ok": True, "issues": [], "checked": False}
     style = (niche.get("image_style") or {}).get("prefix", "")
     rules = "; ".join(niche.get("frame_rules") or [])
+    if style:   # судим по той же сцене, что ушла во FLUX (люди вырезаны в prompt_for)
+        query = re.sub(r"\s{2,}", " ", re.sub(_HUMAN_WORDS, "", query or "", flags=re.I)).strip(" ,")
     # Сцена — мягкий критерий: FLUX-schnell в стилизации не рисует точную сцену/вид, а lite-модель
     # при общем вердикте «ok» браковала почти всё за неточный вид. Поэтому модель ставит отдельные
     # флаги и оценку сюжета 0-10, а решение принимает код: брак = любой жёсткий дефект или сюжет < 4.
@@ -380,10 +393,13 @@ def frame_check(path: str, niche: dict, query: str = "") -> dict:
               "people: any human or human body part. "
               "blank: mostly blank, black or blurred frame. "
               "wrong_style: clearly a different art style than expected (minor variations are fine). "
-              "rule_violation: the frame breaks one of the extra channel rules below. "
+              "rule_violation: something VISIBLE in the frame breaks one of the extra channel rules below "
+              "(a missing scene element is never a rule violation). "
               "relevance: 0-10, how well the frame fits the TOPIC of the requested scene as b-roll; extra "
               "objects, missing details, a different species/model or a loose interpretation still score 5+, "
-              "only a frame about a different subject altogether scores below 4. "
+              "only a frame about a different subject altogether scores below 4. People, crowds, hands, text, "
+              "labels and maps with names are deliberately never drawn: if the scene asks for them, judge only "
+              "the remaining setting and do not lower relevance for their absence. "
               f"Requested scene: {query}. Expected style: {style}. Extra channel rules: {rules or 'none'}. "
               'Return STRICTLY JSON {"text": bool, "deformed": bool, "people": bool, "blank": bool, '
               '"wrong_style": bool, "rule_violation": bool, "relevance": int, "issues": ["short notes"]}.')
