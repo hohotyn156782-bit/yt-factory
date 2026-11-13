@@ -1,0 +1,10 @@
+{
+  "0 12 * * *": "net_space",
+  "0 13 * * *": "net_weather",
+  "0 14 * * *": "net_machines",
+  "0 16 * * *": "net_geo",
+  "0 6 * * 1": "net_space_long",
+  "0 6 * * 2": "net_weather_long",
+  "0 6 * * 3": "net_machines_long",
+  "0 6 * * 5": "net_geo_long"
+}

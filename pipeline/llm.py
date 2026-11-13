@@ -89,6 +89,9 @@ def status() -> list[dict]:
 
 
 def _call(p: dict, key: str, msgs: list[dict], json_mode: bool, max_tokens: int, temp: float) -> str:
+    # Каскад почти целиком из reasoning-моделей: «мысли» съедают max_tokens, и при 900 ответ
+    # приходит пустым/оборванным (finish_reason=length). Платим только за реально выданные токены.
+    max_tokens = max(max_tokens, p.get("min_max_tokens", 4096))
     payload = {"model": p["model"], "temperature": temp, "max_tokens": max_tokens, "messages": msgs}
     if json_mode and p.get("json_mode", True):
         payload["response_format"] = {"type": "json_object"}
@@ -98,7 +101,16 @@ def _call(p: dict, key: str, msgs: list[dict], json_mode: bool, max_tokens: int,
         headers["Authorization"] = f"Bearer {key}"
     req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers)
     try:
-        j = json.loads(urllib.request.urlopen(req, timeout=p.get("timeout", 60)).read())
+        # OpenRouter держит медленный запрос пробелами-keepalive: таймаут сокета не срабатывает
+        # никогда → читаем кусками с общим дедлайном.
+        resp = urllib.request.urlopen(req, timeout=p.get("timeout", 60))
+        deadline, buf = time.time() + p.get("deadline", 150), b""
+        while chunk := resp.read1(8192):
+            buf += chunk
+            if time.time() > deadline:
+                resp.close()
+                raise TimeoutError(f"общий дедлайн {p.get('deadline', 150)}s")
+        j = json.loads(buf)
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", "ignore")[:300]
         low = body.lower()
@@ -116,6 +128,8 @@ def _call(p: dict, key: str, msgs: list[dict], json_mode: bool, max_tokens: int,
     if not content:  # «думающие» модели (Gemini 2.5 и др.) могут вернуть пустой текст, съев лимит на reasoning
         fr = ch.get("finish_reason") or "empty"
         raise _TransientError(f"пустой ответ (finish_reason={fr})")
+    if json_mode and ch.get("finish_reason") == "length":   # JSON оборван лимитом (reasoning съел токены)
+        raise _TransientError("JSON оборван по длине (finish_reason=length)")
     return content.strip()
 
 
@@ -136,9 +150,12 @@ def chat(system: str, user: str, json_mode: bool = True, max_tokens: int = 900,
             kid = _kid(p["name"], key)
             if now < _cooldown.get(kid, 0):
                 continue
+            t0 = time.time()
             try:
                 out = _call(p, key, msgs, json_mode, max_tokens, temp)
                 _last_used[kid] = time.time()
+                core.log("llm ok", level="debug", provider=p["name"], sec=round(time.time() - t0, 1),
+                         skipped=len(errors))
                 return out
             except _QuotaError as e:
                 cd = min(e.retry_after or p.get("cooldown_sec", 1800), 86400)
@@ -146,13 +163,16 @@ def chat(system: str, user: str, json_mode: bool = True, max_tokens: int = 900,
                 _cooldown[kid] = until
                 core.save_cooldown("llm", {kid: until})   # kid непрозрачен (sha1) — безопасно на диск
                 errors.append(f"{kid}: квота → cooldown {cd}с")
+                core.log("llm fail", level="debug", provider=p["name"], err=f"quota {e}"[:160], sec=round(time.time() - t0, 1))
             except _TransientError as e:
                 until = time.time() + p.get("transient_cooldown_sec", 30)
                 _cooldown[kid] = until
                 core.save_cooldown("llm", {kid: until})
                 errors.append(f"{kid}: временно ({e})")
+                core.log("llm fail", level="debug", provider=p["name"], err=f"transient {e}"[:160], sec=round(time.time() - t0, 1))
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{kid}: {str(e)[:80]}")
+                core.log("llm fail", level="debug", provider=p["name"], err=str(e)[:160])
     raise RuntimeError("Все LLM (провайдеры×ключи) недоступны:\n  " + "\n  ".join(errors))
 
 

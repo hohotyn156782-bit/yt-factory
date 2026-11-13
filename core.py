@@ -113,6 +113,8 @@ def load_local_secrets() -> None:
             os.environ.setdefault(k, v)
             if v and len(v) > 8 and _SECRET_NAME_RE.search(k):
                 _SECRETS.add(v)
+                # список ключей через запятую → маскируем и каждый по отдельности
+                _SECRETS.update(x.strip() for x in v.split(",") if len(x.strip()) > 8)
 
 
 def secret(name: str, required: bool = True) -> str:
@@ -148,11 +150,15 @@ def load_niches(only_enabled: bool = True) -> list[dict]:
     return niches
 
 
+# Поля ниши на время одного рана (network.py: угол темы дня, ролик-источник для проверки схожести).
+NICHE_OVERRIDES: dict[str, dict] = {}
+
+
 def get_niche(niche_id: str) -> dict:
     n = next((x for x in load_niches(only_enabled=False) if x["id"] == niche_id), None)
     if not n:
         raise RuntimeError(f"Нет ниши {niche_id} в niches.json")
-    return n
+    return {**n, **NICHE_OVERRIDES.get(niche_id, {})}
 
 
 # ──────────────────────────── Время / история ────────────────────────────

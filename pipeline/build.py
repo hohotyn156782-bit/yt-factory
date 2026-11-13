@@ -178,6 +178,32 @@ def _build_captions(sc: dict, disclaimer: str = "", ai_used: bool = False,
     }
 
 
+def _originality_gate(niche: dict, sc: dict, regen) -> dict:
+    """Ниши сети (network.py) несут ролик-источник в niche['_source']. Схожесть сценария с ним
+    > 20% → одна перегенерация с жёстким требованием другого угла; снова > 20% → брак попытки
+    (build_video пересоберёт с нуля). Без источника — no-op."""
+    src = niche.get("_source")
+    if not src:
+        return sc
+    from pipeline import originality
+    for attempt in range(2):
+        title = sc.get("title") or sc.get("topic", "")
+        res = originality.score(title, originality.script_text(sc), src)
+        core.log("originality", niche=niche["id"], attempt=attempt, **{k: res[k] for k in ("similarity", "parts")})
+        if res["ok"]:
+            sc["_originality"] = res
+            return sc
+        from pipeline import topics_db
+        topics_db.release_topic(niche["id"], sc.get("topic", ""))   # иначе регенерация словит свой же резерв
+        if attempt == 0:
+            n2 = dict(niche)
+            n2["topic_brief"] = (niche.get("topic_brief", "") + "\n\nPREVIOUS DRAFT WAS TOO SIMILAR TO THE "
+                                 f"SOURCE VIDEO ({res['similarity']:.0f}%). Use a different angle, different "
+                                 "order of points, different examples and wording. Never reuse the source title.")
+            sc = regen(n2)
+    raise RuntimeError(f"Схожесть с источником {res['similarity']:.0f}% > {res['limit']}% — брак попытки")
+
+
 def _build_once(niche_id: str, topic: str | None = None, broll_mode: str | None = None,
                 serial: dict | None = None, platform: str | None = None) -> dict:
     core.load_local_secrets()
@@ -201,6 +227,9 @@ def _build_once(niche_id: str, topic: str | None = None, broll_mode: str | None 
         sc["_serial_part"] = serial.get("part")     # → _story_caption добавит «продолжение завтра»
     if platform:
         sc["_platform"] = platform
+    sc = _originality_gate(niche, sc, lambda n: scriptmod.generate(
+        n, topic=topic, avoid=avoid, serial=serial,
+        platform_hint=spec.get("hint", ""), target_words=spec.get("target")))
     chunks = scriptmod.to_chunks(sc)
     if not chunks:
         raise RuntimeError("Сценарий пустой — Groq не вернул сегментов")
@@ -362,6 +391,7 @@ def _build_once_long(niche: dict, topic: str | None) -> dict:
         if not topic:
             raise RuntimeError("selector не дал тему для long-form")
     sc = script_long.generate_long(niche, topic, avoid=avoid)
+    sc = _originality_gate(niche, sc, lambda n: script_long.generate_long(n, topic, avoid=avoid))
     chunks = script_long.to_chunks(sc)
     if not chunks:
         raise RuntimeError("Длинный сценарий пуст")

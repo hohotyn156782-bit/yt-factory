@@ -525,7 +525,19 @@ def _img_seed(workdir: pathlib.Path, i: int) -> int:
 
 def _ai_image_slot(query: str, niche: dict, workdir: pathlib.Path, i: int, character: str = "") -> dict | None:
     from pipeline import imagegen
-    img = imagegen.generate(query, niche, workdir / f"img_{i:02d}.png", seed=_img_seed(workdir, i), character=character)
+    tries = 3 if niche.get("frame_qa") else 1
+    img = None
+    for t in range(tries):   # frame_qa: брак кадра (артефакты/текст/не та сцена) → новый seed
+        img = imagegen.generate(query, niche, workdir / f"img_{i:02d}.png",
+                                seed=_img_seed(workdir, i) + t * 1000, character=character)
+        if not img or tries == 1:
+            break
+        chk = imagegen.frame_check(img, niche, query)
+        if chk["ok"]:
+            break
+        core.log("frame_qa: брак кадра, перегенерация", level="warn", slot=i, attempt=t, issues=chk["issues"][:3])
+        if t == tries - 1:
+            img = None   # все попытки брак → слот уйдёт в сток-фолбэк fetch_for
     if img:
         return {"path": img, "kind": "image", "source": "ai_image", "source_url": "", "query": query}
     return None

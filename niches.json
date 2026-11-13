@@ -11,21 +11,40 @@
       "engine": "kokoro",
       "voice": "am_michael",
       "category": 27,
-      "target_minutes": [10, 12],
+      "target_minutes": [
+        10,
+        12
+      ],
       "topic_brief": "Cinematic history documentaries with a wealth, business, and engineering angle: how business empires rose and collapsed, fortunes made and lost, great engineering feats, and the everyday economic life of past eras. Every video is a researched story with specific numbers, names, and dates — precise, curiosity-driven, and briskly paced. This is NOT sleep content: no droning, no padding, every minute earns the next.",
       "tone": "cinematic documentary narrator — confident, precise, curious; builds stakes like a storyteller, lands facts like a historian",
       "palette": [
-        ["0e0d0b", "c9a227"],
-        ["12100c", "d4af37"],
-        ["0b0e12", "b8924a"]
+        [
+          "0e0d0b",
+          "c9a227"
+        ],
+        [
+          "12100c",
+          "d4af37"
+        ],
+        [
+          "0b0e12",
+          "b8924a"
+        ]
       ],
       "broll_hint": "archival footage, old factory, vintage city street, steam engine, historical map, gold coins, old stock exchange, construction of bridge, sepia photographs, oil derricks, sailing ships, candlelit ledger",
-      "hashtags": ["#history", "#documentary", "#business", "#engineering"],
+      "hashtags": [
+        "#history",
+        "#documentary",
+        "#business",
+        "#engineering"
+      ],
       "cta": "Subscribe — one forgotten fortune, empire, or machine every week.",
       "broll_mode": "mixed",
       "broll_ai_ratio": 0.35,
       "subtitle_mode": "srt",
-      "platforms": ["youtube"],
+      "platforms": [
+        "youtube"
+      ],
       "topic_bank": [
         "What Daily Life Was Actually Like for a Medieval Peasant",
         "The Dutch East India Company: The Richest Company in History and How It Collapsed",
@@ -85,16 +104,625 @@
       "topic_brief": "Single-fact vertical hooks from the same history family as the long documentaries: business empires, fortunes made and lost, engineering feats, everyday economics of past eras. One video = one jaw-dropping verified fact with a sharp hook in the first second, teasing the deeper long-form story on the channel. Same narrator voice as the documentaries — one brand.",
       "tone": "punchy, confident, hook-first; the same documentary narrator in sprint mode",
       "palette": [
-        ["0e0d0b", "c9a227"],
-        ["12100c", "d4af37"],
-        ["0b0e12", "b8924a"]
+        [
+          "0e0d0b",
+          "c9a227"
+        ],
+        [
+          "12100c",
+          "d4af37"
+        ],
+        [
+          "0b0e12",
+          "b8924a"
+        ]
       ],
       "broll_hint": "archival footage, gold coins, old factory, vintage newspaper headline, steam engine, historical map, sepia crowd, old bank vault",
-      "hashtags": ["#history", "#shorts", "#facts"],
+      "hashtags": [
+        "#history",
+        "#shorts",
+        "#facts"
+      ],
       "cta": "The full story is on the channel — subscribe.",
       "broll_mode": "stock",
       "subtitle_mode": "popin",
-      "platforms": ["youtube"]
+      "platforms": [
+        "youtube"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "am_michael",
+      "category": 28,
+      "network": "space",
+      "channel_name": "Starlog Daily",
+      "channel_id": "UCaLTdufcv7PQ5NIxQnsdRCQ",
+      "tone": "calm wonder, 'evening news from the observatory', short precise facts with US units",
+      "palette": [
+        [
+          "0b0a1f",
+          "ff9f43"
+        ]
+      ],
+      "broll_hint": "nebula, planet surface, telescope in orbit, asteroid, black hole accretion disk, rover on Mars, rocket launch",
+      "hashtags": [
+        "#space",
+        "#astronomy",
+        "#science"
+      ],
+      "cta": "Follow for one space discovery explained every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "retro-futurist 1970s space concept painting, gouache and airbrush texture, deep indigo and burnt-amber palette, soft film grain",
+        "suffix": "vast cosmic scale, painterly nebulae, no people"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "AI illustration, never a fake 'real telescope photo' with UI or labels",
+        "no astronauts' faces"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_space",
+      "format": "short",
+      "title": "Starlog Daily · Shorts",
+      "max_seconds": 55,
+      "speed": 1.03,
+      "topic_brief": "Space and astronomy NEWS explained: what telescopes, probes and missions just found (James Webb, Mars rovers, asteroids, black holes, launches). Every video explains the science behind one fresh discovery with mind-bending scale comparisons in miles. Structure: 0-2s news hook ('NASA just saw...'), context: which spacecraft and where (3-10s), three escalating scale steps (10-35s), why scientists are surprised (35-45s), open question that loops to the hook. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "subtitle_mode": "karaoke",
+      "trend_queries": [
+        "James Webb discovery",
+        "NASA just",
+        "black hole discovered"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "am_michael",
+      "category": 28,
+      "network": "space",
+      "channel_name": "Starlog Daily",
+      "channel_id": "UCaLTdufcv7PQ5NIxQnsdRCQ",
+      "tone": "calm wonder, 'evening news from the observatory', short precise facts with US units",
+      "palette": [
+        [
+          "0b0a1f",
+          "ff9f43"
+        ]
+      ],
+      "broll_hint": "nebula, planet surface, telescope in orbit, asteroid, black hole accretion disk, rover on Mars, rocket launch",
+      "hashtags": [
+        "#space",
+        "#astronomy",
+        "#science"
+      ],
+      "cta": "Follow for one space discovery explained every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "retro-futurist 1970s space concept painting, gouache and airbrush texture, deep indigo and burnt-amber palette, soft film grain",
+        "suffix": "vast cosmic scale, painterly nebulae, no people"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "AI illustration, never a fake 'real telescope photo' with UI or labels",
+        "no astronauts' faces"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_space_long",
+      "format": "long",
+      "title": "Starlog Daily · Long",
+      "target_minutes": [
+        8,
+        10
+      ],
+      "speed": 1.0,
+      "topic_brief": "Space and astronomy NEWS explained: what telescopes, probes and missions just found (James Webb, Mars rovers, asteroids, black holes, launches). Every video explains the science behind one fresh discovery with mind-bending scale comparisons in miles. Structure: 'What [mission] Just Found — Explained': cold open on the discovery, then 5-7 blocks of 70-90s, each a new scale jump or mechanism, ending on what comes next. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "broll_ai_ratio": 0.6,
+      "subtitle_mode": "srt",
+      "trend_queries": [
+        "James Webb explained",
+        "space discovery explained",
+        "NASA mission explained"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "bm_george",
+      "category": 27,
+      "network": "weather",
+      "channel_name": "Twister Logic",
+      "channel_id": "UCO67gVDlCGqNzzFdHrbYsGA",
+      "tone": "composed field meteorologist: respect for nature's power, no panic, no gore",
+      "palette": [
+        [
+          "0e1414",
+          "e8d44d"
+        ]
+      ],
+      "broll_hint": "supercell thunderstorm, tornado over plains, hurricane from orbit, lava flow, lightning strike, cracked earth",
+      "hashtags": [
+        "#weather",
+        "#tornado",
+        "#science"
+      ],
+      "cta": "Follow — one force of nature decoded every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "moody cinematic photoreal storm photography, 24mm wide angle, low horizon, volumetric god-rays, desaturated teal and sulfur-yellow palette",
+        "suffix": "empty landscape, no people"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no people, no victims, no destroyed homes with people",
+        "no text overlays"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_weather",
+      "format": "short",
+      "title": "Twister Logic · Shorts",
+      "max_seconds": 55,
+      "speed": 1.0,
+      "topic_brief": "Extreme weather and Earth forces explained: tornadoes, hurricanes, volcanoes, earthquakes, lightning, floods. Explain the PHYSICS of the phenomenon and how to recognise it; never dwell on victims or casualty numbers. Structure: 0-2s counter-intuitive hook fact, what happened or which phenomenon (3-10s), the mechanism in 3 steps (10-38s), how to recognise it / general safety (38-48s), answer to the hook. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "subtitle_mode": "popin",
+      "trend_queries": [
+        "tornado explained",
+        "hurricane",
+        "volcano eruption"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "bm_george",
+      "category": 27,
+      "network": "weather",
+      "channel_name": "Twister Logic",
+      "channel_id": "UCO67gVDlCGqNzzFdHrbYsGA",
+      "tone": "composed field meteorologist: respect for nature's power, no panic, no gore",
+      "palette": [
+        [
+          "0e1414",
+          "e8d44d"
+        ]
+      ],
+      "broll_hint": "supercell thunderstorm, tornado over plains, hurricane from orbit, lava flow, lightning strike, cracked earth",
+      "hashtags": [
+        "#weather",
+        "#tornado",
+        "#science"
+      ],
+      "cta": "Follow — one force of nature decoded every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "moody cinematic photoreal storm photography, 24mm wide angle, low horizon, volumetric god-rays, desaturated teal and sulfur-yellow palette",
+        "suffix": "empty landscape, no people"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no people, no victims, no destroyed homes with people",
+        "no text overlays"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_weather_long",
+      "format": "long",
+      "title": "Twister Logic · Long",
+      "target_minutes": [
+        8,
+        10
+      ],
+      "speed": 1.0,
+      "topic_brief": "Extreme weather and Earth forces explained: tornadoes, hurricanes, volcanoes, earthquakes, lightning, floods. Explain the PHYSICS of the phenomenon and how to recognise it; never dwell on victims or casualty numbers. Structure: 'Every [Tornado/Storm/Volcano] Type Explained' ranked from mild to extreme, 6-9 types, each with mechanism and a real-world scale comparison. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "mixed",
+      "broll_ai_ratio": 0.6,
+      "subtitle_mode": "srt",
+      "trend_queries": [
+        "every tornado explained",
+        "weather explained",
+        "volcano explained"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "am_puck",
+      "category": 28,
+      "network": "machines",
+      "channel_name": "Gearbox Brief",
+      "channel_id": "UCVkgUE0sOG1tSVHeZrX05Og",
+      "tone": "friendly engineer-explainer, upbeat pace, 'here's what's happening inside'",
+      "palette": [
+        [
+          "f4f1ea",
+          "ff6b6b"
+        ]
+      ],
+      "broll_hint": "engine cutaway, gears meshing, jet engine turbine, train bogie, door lock mechanism, pipes under a city street",
+      "hashtags": [
+        "#engineering",
+        "#howitworks",
+        "#science"
+      ],
+      "cta": "Follow to see inside one machine every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "clean 3D isometric cutaway render, soft claymation-like matte materials, pastel color-coded parts, exploded-view layout",
+        "suffix": "plain studio white background, unlabeled, no numbers, no callout lines, no people, no logos"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no brand logos or text on parts",
+        "no melted or nonsensical parts (stylized and exploded views are fine)"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_machines",
+      "format": "short",
+      "title": "Gearbox Brief · Shorts",
+      "max_seconds": 55,
+      "speed": 1.05,
+      "topic_brief": "How machines and everyday technology work inside: engines, gearboxes, planes, trains, locks, appliances, infrastructure (roads, sewers, power grid). Explain the mechanism, never a brand. No weapons or military hardware. Structure: 0-2s 'you've used this 1000 times, but...', the cutaway: what's inside (3-8s), working cycle step by step (8-40s), one surprising detail (40-50s), answer to the hook. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "subtitle_mode": "popin",
+      "trend_queries": [
+        "how it works 3d",
+        "how does a car work",
+        "engineering explained"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "am_puck",
+      "category": 28,
+      "network": "machines",
+      "channel_name": "Gearbox Brief",
+      "channel_id": "UCVkgUE0sOG1tSVHeZrX05Og",
+      "tone": "friendly engineer-explainer, upbeat pace, 'here's what's happening inside'",
+      "palette": [
+        [
+          "f4f1ea",
+          "ff6b6b"
+        ]
+      ],
+      "broll_hint": "engine cutaway, gears meshing, jet engine turbine, train bogie, door lock mechanism, pipes under a city street",
+      "hashtags": [
+        "#engineering",
+        "#howitworks",
+        "#science"
+      ],
+      "cta": "Follow to see inside one machine every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "clean 3D isometric cutaway render, soft claymation-like matte materials, pastel color-coded parts, exploded-view layout",
+        "suffix": "plain studio white background, unlabeled, no numbers, no callout lines, no people, no logos"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no brand logos or text on parts",
+        "no melted or nonsensical parts (stylized and exploded views are fine)"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_machines_long",
+      "format": "long",
+      "title": "Gearbox Brief · Long",
+      "target_minutes": [
+        8,
+        10
+      ],
+      "speed": 1.0,
+      "topic_brief": "How machines and everyday technology work inside: engines, gearboxes, planes, trains, locks, appliances, infrastructure (roads, sewers, power grid). Explain the mechanism, never a brand. No weapons or military hardware. Structure: 'How a [Machine] Works — Every Part Explained': start from the outside, then go part by part in the order energy flows, 6-8 parts, finish with the whole system running. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "broll_ai_ratio": 0.6,
+      "subtitle_mode": "srt",
+      "trend_queries": [
+        "how it works every part explained",
+        "how a plane works",
+        "engineering explained"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "am_fenrir",
+      "category": 15,
+      "network": "creatures",
+      "channel_name": "Jaw Ledger",
+      "channel_id": "PENDING_new_channel_on_hohotyn61",
+      "tone": "low, unhurried campfire naturalist with rising tension",
+      "palette": [
+        [
+          "14202a",
+          "c1663a"
+        ]
+      ],
+      "broll_hint": "giant squid, sperm whale, anglerfish in the deep, great white shark, box jellyfish, polar bear on ice",
+      "hashtags": [
+        "#animals",
+        "#deepsea",
+        "#nature"
+      ],
+      "cta": "Follow for one creature you never want to meet, daily.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "detailed ink engraving artwork, fine cross-hatched linework with muted watercolor wash, textured paper, deep sea-blue and rust accents",
+        "suffix": "full-bleed artwork filling the whole frame, no border, no caption, no title, no plate number, no signature, single creature, no people"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no blood or gore",
+        "creature anatomy plausible, correct number of fins/limbs"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_creatures",
+      "enabled": false,
+      "disabled_reason": "2026-11-13 владелец: без подтверждения телефона канал не создаём, ведём 4 канала",
+      "format": "short",
+      "title": "Jaw Ledger · Shorts",
+      "max_seconds": 55,
+      "speed": 0.97,
+      "topic_brief": "Dangerous animals and deep-sea creatures: predators, venom, extreme survival abilities, newly discovered species. Adult science-first delivery, not for kids; no gore and no real attack footage descriptions. Structure: 0-2s scale-shock hook, where it lives and why you'll never meet it (3-10s), three weapons or abilities (10-40s), what an encounter would be like without gore (40-50s), final answer. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "subtitle_mode": "karaoke",
+      "trend_queries": [
+        "deep sea creature",
+        "new species discovered",
+        "dangerous animal facts"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "am_fenrir",
+      "category": 15,
+      "network": "creatures",
+      "channel_name": "Jaw Ledger",
+      "channel_id": "PENDING_new_channel_on_hohotyn61",
+      "tone": "low, unhurried campfire naturalist with rising tension",
+      "palette": [
+        [
+          "14202a",
+          "c1663a"
+        ]
+      ],
+      "broll_hint": "giant squid, sperm whale, anglerfish in the deep, great white shark, box jellyfish, polar bear on ice",
+      "hashtags": [
+        "#animals",
+        "#deepsea",
+        "#nature"
+      ],
+      "cta": "Follow for one creature you never want to meet, daily.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "detailed ink engraving artwork, fine cross-hatched linework with muted watercolor wash, textured paper, deep sea-blue and rust accents",
+        "suffix": "full-bleed artwork filling the whole frame, no border, no caption, no title, no plate number, no signature, single creature, no people"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no blood or gore",
+        "creature anatomy plausible, correct number of fins/limbs"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_creatures_long",
+      "enabled": false,
+      "disabled_reason": "2026-11-13 владелец: без подтверждения телефона канал не создаём, ведём 4 канала",
+      "format": "long",
+      "title": "Jaw Ledger · Long",
+      "target_minutes": [
+        8,
+        10
+      ],
+      "speed": 1.0,
+      "topic_brief": "Dangerous animals and deep-sea creatures: predators, venom, extreme survival abilities, newly discovered species. Adult science-first delivery, not for kids; no gore and no real attack footage descriptions. Structure: 'Why You'd Never Want to Meet a [Creature]': habitat, senses, weapons, hunting strategy, rivals, and what science still doesn't know — building tension block by block. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "broll_ai_ratio": 0.6,
+      "subtitle_mode": "srt",
+      "trend_queries": [
+        "why you'd never want to meet",
+        "deep sea creatures explained",
+        "dangerous animals explained"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "af_heart",
+      "category": 27,
+      "network": "geo",
+      "channel_name": "Pin Drop Why",
+      "channel_id": "UCFsgRdP2tL1et0LB2ArQJNQ",
+      "tone": "curious, lightly ironic know-it-all guide with quick turns",
+      "palette": [
+        [
+          "f5ecd9",
+          "ff6f59"
+        ]
+      ],
+      "broll_hint": "isometric island, map of a strange border, tiny town on a cliff, globe zooming in, bridge across a strait",
+      "hashtags": [
+        "#geography",
+        "#maps",
+        "#facts"
+      ],
+      "cta": "Follow — one strange place on the map every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "flat vector infographic illustration, top-down map and isometric landmark diorama, limited palette of cream, navy and coral, crisp geometric shapes, paper texture",
+        "suffix": "no people, no labels, no flags"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no text or country names on maps",
+        "no flags"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_geo",
+      "format": "short",
+      "title": "Pin Drop Why · Shorts",
+      "max_seconds": 55,
+      "speed": 1.03,
+      "topic_brief": "Odd geography and strange places: weird borders and enclaves (non-political, no current conflicts), odd time zones, islands, towns built in impossible spots, megastructures and why things are where they are. Structure: 0-2s 'why is THIS here?' hook, zoom from the globe to the place (3-10s), the strange fact (10-25s), the historical or physical reason (25-45s), twist or callback. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "subtitle_mode": "popin",
+      "trend_queries": [
+        "weird geography",
+        "why does this exist",
+        "strangest town"
+      ]
+    },
+    {
+      "enabled": true,
+      "role": "network",
+      "lang": "en",
+      "engine": "kokoro",
+      "voice": "af_heart",
+      "category": 27,
+      "network": "geo",
+      "channel_name": "Pin Drop Why",
+      "channel_id": "UCFsgRdP2tL1et0LB2ArQJNQ",
+      "tone": "curious, lightly ironic know-it-all guide with quick turns",
+      "palette": [
+        [
+          "f5ecd9",
+          "ff6f59"
+        ]
+      ],
+      "broll_hint": "isometric island, map of a strange border, tiny town on a cliff, globe zooming in, bridge across a strait",
+      "hashtags": [
+        "#geography",
+        "#maps",
+        "#facts"
+      ],
+      "cta": "Follow — one strange place on the map every day.",
+      "platforms": [
+        "youtube"
+      ],
+      "image_style": {
+        "prefix": "flat vector infographic illustration, top-down map and isometric landmark diorama, limited palette of cream, navy and coral, crisp geometric shapes, paper texture",
+        "suffix": "no people, no labels, no flags"
+      },
+      "frame_qa": true,
+      "frame_rules": [
+        "no text or country names on maps",
+        "no flags"
+      ],
+      "trend_exclude_channels": [
+        "UCVkgUE0sOG1tSVHeZrX05Og",
+        "UCFsgRdP2tL1et0LB2ArQJNQ",
+        "UCaLTdufcv7PQ5NIxQnsdRCQ",
+        "UCO67gVDlCGqNzzFdHrbYsGA",
+        "UC68t85GqAJfK5wwVinzLFBg"
+      ],
+      "id": "net_geo_long",
+      "format": "long",
+      "title": "Pin Drop Why · Long",
+      "target_minutes": [
+        8,
+        10
+      ],
+      "speed": 1.0,
+      "topic_brief": "Odd geography and strange places: weird borders and enclaves (non-political, no current conflicts), odd time zones, islands, towns built in impossible spots, megastructures and why things are where they are. Structure: 'The Strangest [Borders/Towns/Islands] on Earth, Explained': 7-9 places, each 60-80s: where, what's odd, why it happened. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
+      "broll_mode": "ai_images",
+      "broll_ai_ratio": 0.6,
+      "subtitle_mode": "srt",
+      "trend_queries": [
+        "geography explained",
+        "strangest places on earth",
+        "map explained"
+      ]
     }
   ]
 }

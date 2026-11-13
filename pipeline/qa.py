@@ -19,7 +19,8 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import core  # noqa: E402
 
-VISION_MODEL = "gemini-2.5-flash"
+# 2.5-flash: бесплатный дневной лимит кончается за пару ранов → lite-модели первыми (отдельная квота)
+VISION_MODELS = ("gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-2.5-flash")
 
 
 def _probe(video: str) -> dict:
@@ -241,12 +242,14 @@ def check_visual(video: str, vdur: float, workdir: pathlib.Path, niche: dict | N
     strict_body = json.dumps({"contents": [{"parts": strict_parts}]}).encode()
     import urllib.request
 
+    model_now = [VISION_MODELS[0]]
+
     def _ask(key: str, payload: bytes) -> str:
         """Один запрос к ключу. Возвращает извлечённый text (может быть пустым).
         Сетевые/429/исключения запроса пробрасываются наружу (трактуются как промах ключа)."""
         # ВАЖНО: новые ключи Google формата `AQ.…` работают ТОЛЬКО через заголовок x-goog-api-key.
         # Старый `?key=` даёт им 401 ACCESS_TOKEN_TYPE_UNSUPPORTED → визуальный QA молча отваливался.
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{VISION_MODEL}:generateContent"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_now[0]}:generateContent"
         req = urllib.request.Request(url, data=payload,
                                      headers={"Content-Type": "application/json", "x-goog-api-key": key})
         r = json.loads(urllib.request.urlopen(req, timeout=90).read())
@@ -254,36 +257,37 @@ def check_visual(video: str, vdur: float, workdir: pathlib.Path, niche: dict | N
         parts = (cand.get("content") or {}).get("parts") or [{}]
         return parts[0].get("text", "") or ""
 
-    for key in keys:
-        # 1) Сетевой слой: пустой ответ / исключение запроса / 429 → fail-open, continue к след. ключу.
-        try:
-            txt = _ask(key, body)
-        except Exception:  # noqa: BLE001 — настоящий сетевой промах ключа: норм fail-open
-            continue
-        if not txt or not txt.strip():
-            continue  # пустой ответ при валидном HTTP — трактуем как промах ключа, след. ключ
-        # 2) Ответ НЕПУСТОЙ. Парсинг JSON — отдельная ветка (НЕ сваливаем в сетевую кучу).
-        try:
-            d = json.loads(txt)
-            return {"ok": bool(d.get("ok", True)), "issues": d.get("issues", []),
-                    "checked": True, "frames": len(frames)}
-        except (json.JSONDecodeError, TypeError):
-            pass  # ключ РАБОТАЕТ (квота потрачена), но JSON битый → ОДИН retry тем же ключом
-        try:
-            txt2 = _ask(key, strict_body)
-            d = json.loads(txt2)
-            return {"ok": bool(d.get("ok", True)), "issues": d.get("issues", []),
-                    "checked": True, "frames": len(frames)}
-        except (json.JSONDecodeError, TypeError):
-            # Дважды непарсибельный JSON при рабочем ключе — это РЕАЛЬНЫЙ провал проверки,
-            # а не сетевой промах. Логируем на error (не молчим) и помечаем visual_unverified.
-            core.log("QA: визуальная проверка — ответ Gemini не парсится в JSON (ключ рабочий, квота потрачена)",
-                     level="error", video=pathlib.Path(video).name, txt=str(txt2)[:200] or str(txt)[:200])
-            return {"ok": True, "issues": [], "checked": False, "visual_unverified": True,
-                    "note": "Gemini вернул невалидный JSON (проверка не пройдена)"}
-        except Exception as e:  # noqa: BLE001 — на retry упала сеть/429: вернуть в fail-open поток
-            core.log_error("QA.check_visual retry", e, video=pathlib.Path(video).name)
-            continue
+    for model_now[0] in VISION_MODELS:
+        for key in keys:
+            # 1) Сетевой слой: пустой ответ / исключение запроса / 429 → fail-open, continue к след. ключу.
+            try:
+                txt = _ask(key, body)
+            except Exception:  # noqa: BLE001 — настоящий сетевой промах ключа: норм fail-open
+                continue
+            if not txt or not txt.strip():
+                continue  # пустой ответ при валидном HTTP — трактуем как промах ключа, след. ключ
+            # 2) Ответ НЕПУСТОЙ. Парсинг JSON — отдельная ветка (НЕ сваливаем в сетевую кучу).
+            try:
+                d = json.loads(txt)
+                return {"ok": bool(d.get("ok", True)), "issues": d.get("issues", []),
+                        "checked": True, "frames": len(frames)}
+            except (json.JSONDecodeError, TypeError):
+                pass  # ключ РАБОТАЕТ (квота потрачена), но JSON битый → ОДИН retry тем же ключом
+            try:
+                txt2 = _ask(key, strict_body)
+                d = json.loads(txt2)
+                return {"ok": bool(d.get("ok", True)), "issues": d.get("issues", []),
+                        "checked": True, "frames": len(frames)}
+            except (json.JSONDecodeError, TypeError):
+                # Дважды непарсибельный JSON при рабочем ключе — это РЕАЛЬНЫЙ провал проверки,
+                # а не сетевой промах. Логируем на error (не молчим) и помечаем visual_unverified.
+                core.log("QA: визуальная проверка — ответ Gemini не парсится в JSON (ключ рабочий, квота потрачена)",
+                         level="error", video=pathlib.Path(video).name, txt=str(txt2)[:200] or str(txt)[:200])
+                return {"ok": True, "issues": [], "checked": False, "visual_unverified": True,
+                        "note": "Gemini вернул невалидный JSON (проверка не пройдена)"}
+            except Exception as e:  # noqa: BLE001 — на retry упала сеть/429: вернуть в fail-open поток
+                core.log_error("QA.check_visual retry", e, video=pathlib.Path(video).name)
+                continue
     return {"ok": True, "issues": [], "checked": False, "note": "Gemini-зрение недоступно (429/ошибка)"}
 
 

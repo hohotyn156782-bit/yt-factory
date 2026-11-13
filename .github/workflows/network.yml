@@ -1,0 +1,121 @@
+name: network
+
+# Сеть автоканалов (pipeline/network.py): тема дня из YouTube → свой угол → сборка → TG Паше.
+# Расписание (UTC) — каждый канал в своё время, длинные — в разные дни недели.
+# Карта cron → ниша в шаге «Выбрать нишу». Ручной запуск: workflow_dispatch с id ниши.
+
+on:
+  workflow_dispatch:
+    inputs:
+      niche:
+        description: "id ниши из niches.json (net_*)"
+        required: true
+  schedule:
+    - cron: "0 12 * * *"    # net1 shorts
+    - cron: "0 13 * * *"    # net2 shorts
+    - cron: "0 14 * * *"    # net3 shorts
+    - cron: "0 16 * * *"    # net4 shorts
+    - cron: "0 6 * * 1"     # net1 long (Пн)
+    - cron: "0 6 * * 2"     # net2 long (Вт)
+    - cron: "0 6 * * 3"     # net3 long (Ср)
+    - cron: "0 6 * * 5"     # net4 long (Пт)
+
+concurrency:
+  group: network-state     # один ран за раз: общий state/ (квоты картинок, история тем)
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    env:
+      PYTHONUNBUFFERED: "1"
+      CF_DATA_ROOT: ${{ github.workspace }}/state/cfdata
+      CF_NO_YTDLP: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Выбрать нишу (по cron или вручную)
+        id: pick
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT: ${{ github.event.inputs.niche }}
+        run: |
+          N="$INPUT"
+          if [ -z "$N" ]; then
+            N=$(python3 -c "import json,os;m=json.load(open('network_schedule.json'));print(m.get(os.environ['SCHEDULE'],''))")
+          fi
+          if [ -z "$N" ]; then echo "::warning::нет ниши для '$SCHEDULE' — выходим"; fi
+          echo "niche=$N" >> "$GITHUB_OUTPUT"
+          echo "Ниша: $N"
+      - uses: actions/setup-python@v5
+        if: steps.pick.outputs.niche != ''
+        with:
+          python-version: "3.12"
+      - name: ffmpeg + шрифты
+        if: steps.pick.outputs.niche != ''
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - name: Python-зависимости
+        if: steps.pick.outputs.niche != ''
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Кэш модели Kokoro
+        if: steps.pick.outputs.niche != ''
+        uses: actions/cache@v4
+        with:
+          path: state/cfdata/cache/kokoro
+          key: kokoro-v1.0
+      - name: Записать секреты
+        if: steps.pick.outputs.niche != ''
+        env:
+          SECRETS_ENV: ${{ secrets.SECRETS_ENV }}
+        run: |
+          mkdir -p ~/.config/yt-factory
+          printf '%s' "$SECRETS_ENV" > ~/.config/yt-factory/secrets.env
+      - name: Собрать ролик и отправить в TG
+        if: steps.pick.outputs.niche != ''
+        env:
+          NICHE: ${{ steps.pick.outputs.niche }}
+        run: |
+          mkdir -p "$CF_DATA_ROOT"
+          python3 -m pipeline.network run "$NICHE"
+      - name: Артефакт — видео/обложка/описание
+        if: always() && steps.pick.outputs.niche != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: net-${{ steps.pick.outputs.niche }}-${{ github.run_id }}
+          path: |
+            state/cfdata/publish/*.mp4
+            state/cfdata/output/*/POST.txt
+            state/cfdata/output/*/thumb.jpg
+            state/cfdata/output/*/subs.srt
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Сохранить состояние — коммит-бэк с ретраем
+        if: always() && steps.pick.outputs.niche != ''
+        env:
+          NICHE: ${{ steps.pick.outputs.niche }}
+        run: |
+          git config user.email "network@yt-factory"
+          git config user.name "yf-network"
+          if [ -z "$(git status --porcelain state/ 2>/dev/null)" ]; then exit 0; fi
+          git add state/
+          git commit -m "state: network $NICHE [skip ci]" || exit 0
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin master && git push origin master && exit 0
+            sleep 5
+          done
+          echo "::error::коммит-бэк state/ не удался"; exit 1
+      - name: Алерт в TG при падении
+        if: failure() && steps.pick.outputs.niche != ''
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          NICHE: ${{ steps.pick.outputs.niche }}
+        run: |
+          python3 - <<'PY'
+          import os, core, reporter
+          core.load_local_secrets()
+          reporter.critical(f"🛑 CI network УПАЛ · {os.environ.get('NICHE')}\n{os.environ.get('RUN_URL','')}")
+          PY

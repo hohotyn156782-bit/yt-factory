@@ -3,25 +3,27 @@
   "providers": [
     {
       "name": "github-models",
-      "enabled": true,
+      "enabled": false,
       "base_url": "https://models.github.ai/inference",
       "model": "openai/gpt-4o",
       "key_env": "GITHUB_MODELS_TOKEN",
       "json_mode": true,
       "cooldown_sec": 3600,
       "transient_cooldown_sec": 30,
-      "free_note": "#1 КАЧЕСТВО: GPT-4o бесплатно по GitHub PAT (scope models:read), но ~50/день → первые сценарии дня на топ-модели, дальше каскад падает ниже. Ключа пока нет — слот ждёт."
+      "free_note": "#1 КАЧЕСТВО: GPT-4o бесплатно по GitHub PAT (scope models:read), но ~50/день → первые сценарии дня на топ-модели, дальше каскад падает ниже. Ключа пока нет — слот ждёт.",
+      "disabled_reason": "2026-11-12: стабильно падает (404 / пустой ответ / зацикленный JSON) — только тормозит каскад"
     },
     {
       "name": "mistral",
-      "enabled": true,
+      "enabled": false,
       "base_url": "https://api.mistral.ai/v1",
       "model": "mistral-large-latest",
       "key_env": "MISTRAL_API_KEY",
       "json_mode": true,
       "cooldown_sec": 120,
       "transient_cooldown_sec": 30,
-      "free_note": "#2: Mistral Large — топ RU-качество, 3 ключа, ~1 RPM/ключ (cooldown 120с гасит rate-limit). ПРОВЕРЕНО: работает."
+      "free_note": "#2: Mistral Large — топ RU-качество, 3 ключа, ~1 RPM/ключ (cooldown 120с гасит rate-limit). ПРОВЕРЕНО: работает.",
+      "disabled_reason": "2026-11-12: стабильно падает (404 / пустой ответ / зацикленный JSON) — только тормозит каскад"
     },
     {
       "name": "gemini",
@@ -36,25 +38,30 @@
     },
     {
       "name": "gemini-lite",
-      "enabled": true,
+      "enabled": false,
       "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
       "model": "gemini-2.5-flash-lite",
       "key_env": "GEMINI_API_KEY",
       "json_mode": true,
       "cooldown_sec": 3600,
       "transient_cooldown_sec": 60,
-      "free_note": "overflow: 2.5 Flash-Lite, те же GEMINI_API_KEY, 1500 RPD/ключ"
+      "free_note": "overflow: 2.5 Flash-Lite, те же GEMINI_API_KEY, 1500 RPD/ключ",
+      "key_envs": [
+        "GEMINI_API_KEY_LITE"
+      ],
+      "disabled_reason": "2026-11-12: стабильно падает (404 / пустой ответ / зацикленный JSON) — только тормозит каскад"
     },
     {
       "name": "cerebras",
-      "enabled": true,
+      "enabled": false,
       "base_url": "https://api.cerebras.ai/v1",
       "model": "qwen-3-32b",
       "key_env": "CEREBRAS_API_KEY",
       "json_mode": true,
       "cooldown_sec": 3600,
       "transient_cooldown_sec": 30,
-      "free_note": "#4: Qwen3-32B, ~1М токенов/день, очень быстрый, без карты. Ключа пока нет."
+      "free_note": "#4: Qwen3-32B, ~1М токенов/день, очень быстрый, без карты. Ключа пока нет.",
+      "disabled_reason": "2026-11-12: стабильно падает (404 / пустой ответ / зацикленный JSON) — только тормозит каскад"
     },
     {
       "name": "groq",
@@ -71,12 +78,12 @@
       "name": "openrouter",
       "enabled": true,
       "base_url": "https://openrouter.ai/api/v1",
-      "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "key_env": "OPENROUTER_API_KEY",
       "json_mode": true,
       "cooldown_sec": 1800,
       "transient_cooldown_sec": 30,
-      "free_note": "#6: Qwen3-80B free, 3 ключа; free-модели часто 429 (общие) — overflow."
+      "free_note": "2026-10-26: qwen3-next-80b больше не бесплатна (404) → Nemotron 3 Ultra 550B free, проверено живьём в json_mode. Ключи: 6 аккаунтов."
     },
     {
       "name": "openrouter-gemma",
@@ -93,12 +100,79 @@
       "name": "openrouter-nemo",
       "enabled": true,
       "base_url": "https://openrouter.ai/api/v1",
-      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "model": "nvidia/nemotron-3.5-lightning:free",
       "key_env": "OPENROUTER_API_KEY",
       "json_mode": true,
       "cooldown_sec": 1800,
       "transient_cooldown_sec": 30,
-      "free_note": "#7: вторая free-модель OpenRouter на тех же ключах — повышает hit-rate."
+      "free_note": "2026-10-26: nemotron-3-super-120b снята с free (404) → Nemotron 3.5 Lightning free, проверено живьём в json_mode."
+    },
+    {
+      "name": "cloudflare-1",
+      "enabled": true,
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/10b6abe7232c989fbba85e8beca827d4/ai/v1",
+      "model": "@cf/openai/gpt-oss-120b",
+      "key_env": "CLOUDFLARE_AI_TOKEN_1",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "Cloudflare Workers AI, бесплатно 10 000 нейронов/сутки на аккаунт (без карты: сверх лимита запросы просто отклоняются). Свой аккаунт = свой base_url, поэтому слот на каждый. Добавлен и проверен живьём 2026-10-26."
+    },
+    {
+      "name": "cloudflare-2",
+      "enabled": true,
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/9df754f59e86e55ecfc25689b4a6696b/ai/v1",
+      "model": "@cf/openai/gpt-oss-120b",
+      "key_env": "CLOUDFLARE_AI_TOKEN_2",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "Cloudflare Workers AI, бесплатно 10 000 нейронов/сутки на аккаунт (без карты: сверх лимита запросы просто отклоняются). Свой аккаунт = свой base_url, поэтому слот на каждый. Добавлен и проверен живьём 2026-10-26."
+    },
+    {
+      "name": "cloudflare-3",
+      "enabled": true,
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/745c46e189010aa7d08ad7ed87cd7eaf/ai/v1",
+      "model": "@cf/openai/gpt-oss-120b",
+      "key_env": "CLOUDFLARE_AI_TOKEN_3",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "Cloudflare Workers AI, бесплатно 10 000 нейронов/сутки на аккаунт (без карты: сверх лимита запросы просто отклоняются). Свой аккаунт = свой base_url, поэтому слот на каждый. Добавлен и проверен живьём 2026-10-26."
+    },
+    {
+      "name": "cloudflare-4",
+      "enabled": true,
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/4e6004ef5ac0c399618c6b35160e8377/ai/v1",
+      "model": "@cf/openai/gpt-oss-120b",
+      "key_env": "CLOUDFLARE_AI_TOKEN_4",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "Cloudflare Workers AI, бесплатно 10 000 нейронов/сутки на аккаунт (без карты: сверх лимита запросы просто отклоняются). Свой аккаунт = свой base_url, поэтому слот на каждый. Добавлен и проверен живьём 2026-10-26."
+    },
+    {
+      "name": "cloudflare-5",
+      "enabled": true,
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/13d421489f30430780c5e4ee896f1045/ai/v1",
+      "model": "@cf/openai/gpt-oss-120b",
+      "key_env": "CLOUDFLARE_AI_TOKEN_5",
+      "json_mode": true,
+      "cooldown_sec": 3600,
+      "transient_cooldown_sec": 30,
+      "free_note": "Cloudflare Workers AI, бесплатно 10 000 нейронов/сутки на аккаунт (без карты: сверх лимита запросы просто отклоняются). Свой аккаунт = свой base_url, поэтому слот на каждый. Добавлен и проверен живьём 2026-10-26."
+    },
+    {
+      "name": "zai-glm",
+      "enabled": true,
+      "base_url": "https://api.z.ai/api/paas/v4",
+      "model": "glm-4.5-flash",
+      "key_env": "ZAI_API_KEY",
+      "json_mode": false,
+      "timeout": 120,
+      "cooldown_sec": 1800,
+      "transient_cooldown_sec": 60,
+      "free_note": "Z.ai GLM-4.5-Flash — бесплатная модель (ключи через Google-вход, 2026-10-26). glm-4.7-flash постоянно 429/1305 (перегрузка), 4.5-flash ответила на всех 5 ключах. Ответ бывает в ```json — script._parse это разбирает."
     },
     {
       "name": "chutes",

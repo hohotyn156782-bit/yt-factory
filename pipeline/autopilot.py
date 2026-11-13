@@ -149,12 +149,12 @@ def _run_url() -> str:
     return ""
 
 
-def post_youtube(niche_id: str) -> list:
+def post_youtube(niche_id: str, topic: str | None = None) -> list:
     """Собрать видео ниши (long или short) и опубликовать (YT_AUTO) / поставить в мост (TG)."""
     niche = core.get_niche(niche_id)
     fmt = niche.get("format", "short")
     attempts = int(os.environ.get("CF_MAX_ATTEMPTS") or (1 if fmt == "long" else 2))
-    res = builder.build_video(niche_id, max_attempts=attempts)
+    res = builder.build_video(niche_id, topic=topic, max_attempts=attempts)
     if not res or not (res.get("qa") or {}).get("ok", True):
         _qa_alert(fmt, niche_id, (res or {}).get("qa") or {})
         return [(f"{fmt}/{niche_id}", False, "QA не пройден")]
@@ -191,6 +191,10 @@ def post_youtube(niche_id: str) -> list:
     if (meta.get("qa") or {}).get("forced"):
         issues = "; ".join(str(x) for x in ((meta.get("qa") or {}).get("issues") or []))[:300]
         note += f"\n🔴 QA-форс: визуальные артефакты не исправлены за все попытки — глянь видео перед выкладкой. {issues}"
+    orig = (res.get("script") or {}).get("_originality")
+    if orig:
+        src_url = niche.get("_source_url", "")
+        note += f"\n🧬 Схожесть с источником: {orig['similarity']:.0f}% (порог {orig['limit']}%) {src_url}"
     extras = {"thumb": meta.get("thumbnail"), "description": (description + note).strip()}
     ok, info = tg_queue.send_item("youtube", meta["video"], title, tags, _eng_question(sc),
                                   channel=niche.get("title", ""), niche=niche_id, extras=extras)
@@ -245,7 +249,8 @@ def run(output: str, niche: str | None = None) -> list:
     want_fmt = "long" if output == "long" else "short"
     single = niche is not None
     niches = [niche] if single else [n["id"] for n in core.load_niches(only_enabled=True)
-                                     if n.get("format", "short") == want_fmt]
+                                     if n.get("format", "short") == want_fmt
+                                     and not n.get("network")]   # каналы сети гоняет network.yml
     # Честная ротация: раньше ниши шли фиксированным порядком, и хвост списка вечно отсекался
     # бюджетом → одни и те же ниши (soviet_things/psy_stories) НИКОГДА не публиковались.
     # Стартуем с той ниши, на которой прошлый запуск оборвался по бюджету — round-robin по
