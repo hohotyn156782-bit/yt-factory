@@ -80,10 +80,11 @@ def _gemini_keys() -> list[str]:
     return [k.strip() for k in os.environ.get("GEMINI_API_KEY", "").split(",") if k.strip()]
 
 
-_HUMAN_WORDS = (r"\b(crowds?|people|persons?|man|men|woman|women|kids?|children|boys?|girls?|astronauts?|"
-                r"astronomers?|scientists?|engineers?|workers?|drivers?|pilots?|tourists?|spectators?|"
-                r"residents?|locals|villagers|families|hands?|faces?|onlookers?|watching|pointing|holding|looking at|"
-                r"standing|walking)\b")
+_HUMAN_WORDS = (r"\b(?:(?:a|an|the|his|her|their|its)\s+)?(?:crowds?|people|persons?|man|men|woman|women|"
+                r"humans?|kids?|children|boys?|girls?|astronauts?|astronomers?|scientists?|engineers?|workers?|"
+                r"drivers?|pilots?|tourists?|spectators?|residents?|locals|villagers|families|hands?|faces?|"
+                r"onlookers?|figures?|silhouettes?|watching|pointing|holding|looking at|standing|walking)"
+                r"(?:['’]s?)?(?:-\w+)?(?!\w)")
 
 
 def prompt_for(query: str, niche: dict, character: str = "") -> str:
@@ -99,7 +100,7 @@ def prompt_for(query: str, niche: dict, character: str = "") -> str:
         # Каналы сети людей не рисуют, а сценарий всё равно просит «crowds watching…» — FLUX тогда
         # рисует толпу и кадр уходит в брак. Убираем людей из сцены, остаётся обстановка.
         q = re.sub(_HUMAN_WORDS, "", q, flags=re.I)
-        q = re.sub(r"\s{2,}", " ", q).strip(" ,") or niche.get("broll_hint", "landscape")
+        q = re.sub(r"\s{2,}", " ", q).strip(" ,'’-") or niche.get("broll_hint", "landscape")
         subj = f"{character}. Scene: {q}" if character else q
         return (f"{style['prefix']}, {subj}, {style.get('suffix', '')}, "
                 "no text, no letters, no captions, no signage, no logos, no watermark, "
@@ -380,7 +381,8 @@ def frame_check(path: str, niche: dict, query: str = "") -> dict:
     style = (niche.get("image_style") or {}).get("prefix", "")
     rules = "; ".join(niche.get("frame_rules") or [])
     if style:   # судим по той же сцене, что ушла во FLUX (люди вырезаны в prompt_for)
-        query = re.sub(r"\s{2,}", " ", re.sub(_HUMAN_WORDS, "", query or "", flags=re.I)).strip(" ,")
+        query = (re.sub(r"\s{2,}", " ", re.sub(_HUMAN_WORDS, "", query or "", flags=re.I)).strip(" ,'’-")
+                 or niche.get("broll_hint", "landscape"))
     # Сцена — мягкий критерий: FLUX-schnell в стилизации не рисует точную сцену/вид, а lite-модель
     # при общем вердикте «ok» браковала почти всё за неточный вид. Поэтому модель ставит отдельные
     # флаги и оценку сюжета 0-10, а решение принимает код: брак = любой жёсткий дефект или сюжет < 4.
