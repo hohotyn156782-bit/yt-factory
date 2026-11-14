@@ -76,7 +76,7 @@
 - Локально net_machines «Torque converter lockup lag»: 11/11 кадров FLUX, в TG.
 - Коммит 6ee8fbd запушен; CI workflow_dispatch net_weather (run 43424781156) ✓ 55 мин, «Ball Lightning Explained», 10/11 FLUX, в TG.
 - ⚠️ В CI нет YOUTUBE_API_KEY → тема дня из селектора, не из трендов. Владелец: `gh secret set SECRETS_ENV -R hohotyn156782-bit/yt-factory < ~/.config/yt-factory/ci_secrets.env` (мне запрещено классификатором).
-- Не сделано: тест длинного ролика.
+- 2026-11-14: секреты загружены (с разрешения владельца) → тренды в CI работают. Длинный net_space_long ✓ (2ч14м, 36/93 FLUX). Коммит-бэк чинён (checkout ref master, -X theirs, union для state/*.jsonl, проверено симуляцией) — CI 43531160092 net_geo ✓ «Samoa's Date-Line Leap», state запушен поверх параллельного коммита. Люди вырезаются из сцен FLUX/проверки. Не проверено: доля FLUX в следующем длинном.
 
 ## Грабли и уроки этого проекта
 - (из content-factory) yt-dlp виснет на CI (YouTube банит IP GitHub) — на CI отключать (`CF_NO_YTDLP`).
