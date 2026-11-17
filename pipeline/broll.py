@@ -11,6 +11,7 @@ import re
 import json
 import time
 import hashlib
+import os
 import pathlib
 import urllib.parse
 import urllib.request
@@ -579,7 +580,9 @@ def _arch_photo(cand: dict, scene: str, niche: dict, workdir: pathlib.Path, i: i
         return None
     chk = imagegen.archival_check(str(dest), scene, niche.get("frame_rules"), caption=_strip_html(cand["text"], 400),
                                   narration=narration)
-    if not chk["checked"]:                       # кратковременный 429/503 — одна повторная попытка через паузу
+    if not chk["checked"] and not os.environ.get("GEMINI_API_KEY", "").strip():
+        _ARCH_DEAD.add("vision")                  # ключей нет вовсе — повтор бессмыслен, дальше только карты
+    elif not chk["checked"]:                     # кратковременный 429/503 — одна повторная попытка через паузу
         time.sleep(15)
         chk = imagegen.archival_check(str(dest), scene, niche.get("frame_rules"),
                                       caption=_strip_html(cand["text"], 400), narration=narration)
@@ -694,7 +697,7 @@ def _archival_slot(query: str, niche: dict, workdir: pathlib.Path, i: int, dur: 
             drawn[maps.canonical(spec)] = 1
             return item
         query = text_q                                # та же карта уже была — сначала ищем фото места
-    every = int(niche.get("archival_video_every", 4) or 0) if "vision" not in _ARCH_DEAD else 0
+    every = int(niche.get("archival_video_every", 4) or 0) if "vision" not in _ARCH_DEAD and not _VISION_FAILS[0] else 0
     want_video = bool(every) and i > 0 and i % every == 0
     if want_video:
         item = _arch_video(query, query, niche, workdir, i, dur, used, narration)
@@ -702,6 +705,8 @@ def _archival_slot(query: str, niche: dict, workdir: pathlib.Path, i: int, dur: 
             return item
     checks = 0 if "vision" not in _ARCH_DEAD else _ARCH_CHECKS_PER_SLOT
     for q in _arch_queries(query):
+        if checks >= _ARCH_CHECKS_PER_SLOT or "vision" in _ARCH_DEAD:
+            break                                # vision мёртв — поиск всё равно некому проверить
         cands = _commons(q, used) + _loc(q, used) + _nasa_images(q, used)
         qt = _qtok(query)
         cands.sort(key=lambda c: (-_overlap(qt, c["text"]), c["order"]))   # ближе к сцене — раньше
@@ -718,7 +723,7 @@ def _archival_slot(query: str, niche: dict, workdir: pathlib.Path, i: int, dur: 
             state["rejected"].add(c["key"])  # брак под эту сцену — в этом ролике больше не проверяем
         if checks >= _ARCH_CHECKS_PER_SLOT or "vision" in _ARCH_DEAD:
             break
-    if not want_video and "vision" not in _ARCH_DEAD:
+    if not want_video and "vision" not in _ARCH_DEAD and not _VISION_FAILS[0]:
         item = _arch_video(query, query, niche, workdir, i, dur, used, narration)
         if item:
             return item

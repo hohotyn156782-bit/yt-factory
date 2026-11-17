@@ -161,6 +161,7 @@ def canonical(query: str) -> str:
     if not spec:
         return (query or "").strip().lower()
     names = [(find_region(n) or {}).get("name") or n.strip().lower() for n in spec["regions"]]
+    names = list(dict.fromkeys(names))              # «Vietnam, Saigon» = «Vietnam»
     return ("->" if spec["arrow"] else ",").join(names if spec["arrow"] else sorted(names))
 
 
