@@ -154,7 +154,7 @@ def _gen_hook(topic: str, outline: dict, var: dict) -> str:
 
 
 def _gen_chapter(topic: str, outline: dict, idx: int, prev_tail: str, var: dict,
-                 w_lo: int, w_hi: int) -> dict:
+                 w_lo: int, w_hi: int, niche: dict | None = None) -> dict:
     """Развернуть главу idx (0-based). prev_tail — хвост предыдущей главы для бесшовного нарратива."""
     chapters = outline.get("chapters") or []
     ch = chapters[idx]
@@ -182,10 +182,12 @@ def _gen_chapter(topic: str, outline: dict, idx: int, prev_tail: str, var: dict,
         "  • Cover the beats below with concrete documented facts (names, dates, numbers)."
         + recap_line + tease_line + "\n"
         "  • Do not re-explain what previous chapters already covered (except an explicitly requested recap).\n"
+        + ("  • broll_queries: 2-4 ENGLISH phrases. " + niche["broll_query_rule"] + "\n"
+           if (niche or {}).get("broll_query_rule") else
         "  • broll_queries: 2-4 ENGLISH stock-footage search phrases (4-7 words each) — CONCRETE visual "
         "scenes matching this chapter's content that stock libraries can plausibly have: era-evocative "
         "objects, landscapes, sea/city/workshop scenes, close-ups of maps, coins, documents, tools. "
-        "FORBIDDEN: abstract, 3d render, patterns, particles, motion graphics, logo, neon shapes.\n"
+        "FORBIDDEN: abstract, 3d render, patterns, particles, motion graphics, logo, neon shapes.\n") +
         'Return STRICT JSON: {"text": "...", "broll_queries": ["...", "..."]}'
     )
     beats = "\n".join(f"  - {b}" for b in (ch.get("beats") or []))
@@ -427,7 +429,7 @@ def _build_draft(niche: dict, topic: str, avoid: list[str] | None, feedback: str
     hook = _gen_hook(topic, outline, var)
     chapters, prev_tail = [], ""
     for i in range(n):
-        ch = _gen_chapter(topic, outline, i, prev_tail, var, w_lo, w_hi)
+        ch = _gen_chapter(topic, outline, i, prev_tail, var, w_lo, w_hi, niche)
         if len(ch.get("text", "").split()) < w_lo:       # недобор → точечный до-раскрут
             ch = _expand_chapter(ch, topic, w_lo, w_hi)
         chapters.append(ch)

@@ -193,7 +193,7 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
     Возвращает нормализованный dict."""
     import core as _core
     # целевая длина под площадку, зажатая в окно validate() (62-92): диапазон для промпта и trim
-    tw = int(target_words) if target_words else 80
+    tw = int(target_words or niche.get("target_words") or 80)
     tw = max(66, min(90, tw))
     w_lo, w_hi = max(62, tw - 6), min(92, tw + 5)
     w_trim = min(92, tw + 8)
@@ -329,7 +329,7 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
         + (f"THIS IS A STORY ABOUT ONE CHARACTER: EVERY broll_query must show the same character from the "
            f"\"character\" field in this line's action/situation (e.g. 'the credit card lying forgotten in a dark wallet', "
            f"'the credit card swiped at a terminal, sparks'). 4-8 English words, cinematic.\n"
-           if is_story else
+           if is_story else niche["broll_query_rule"] + "\n" if niche.get("broll_query_rule") else
            f"4-6 English words, a real scene with people/objects matching the meaning (e.g. a line about money → "
            f"'man counting cash at kitchen table'; about sleep → 'exhausted woman lying awake in bed'; about doors/memory → "
            f"'person pausing confused in a doorway'). VARY the shots, don't repeat people/backgrounds.\n") +
@@ -347,6 +347,7 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
     # иначе — лучший набранный балл.
     best = None
     fallback = None        # любой непустой сценарий — страховка от пустого результата
+    off_topic = None       # сценарий, ушедший с явной темы — резерв на самый крайний случай
     feedback = ""
     niche_id = niche.get("id", "")
     held_topic = ""        # тема, которую СЕЙЧАС держим зарезервированной (та, что в best); чужие резервы освобождаем
@@ -370,6 +371,16 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
         except Exception:  # noqa: BLE001 — сбой LLM/парса, пробуем ещё раз
             continue
         sc = _trim_to_words(sc, max_words=w_trim)   # механически режем до целевой длины под площадку
+        _q = {"why", "how", "what", "really", "did", "does", "truth", "real", "secret", "actually"}
+        _stem = lambda t: {w[:5] for w in _content_words(t) - _q}     # viking/vikings, hurricane/hurricanes
+        if topic and _stem(topic) and not (_stem(topic) & _stem(
+                " ".join([sc.get("topic", ""), sc.get("title", ""), sc.get("hook", "")]))):
+            # явная тема (network/ручной заказ): цикл само-улучшения не должен уводить на другую тему;
+            # такой сценарий — только последний резерв, если по теме не выйдет ни одного
+            if sc.get("segments"):
+                off_topic = off_topic or sc
+            feedback = f"\n\nStay on the SPECIFIC TOPIC: {topic}. Do not switch to another subject."
+            continue
         if sc.get("segments"):
             fallback = fallback or sc
         if not validate(sc)[0]:
@@ -461,6 +472,7 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
                     f"Aim for a flawless 100/100 (powerful hook, retention loops, value, shareability, trend).")
     if best is not None:
         return _title_variants(best, niche)
+    fallback = fallback or off_topic
     if fallback is not None:                  # ни один не взял планку, но есть рабочий — отдаём его
         fallback.setdefault("virality", _virality_score(fallback, niche))
         return _title_variants(fallback, niche)
@@ -470,12 +482,13 @@ def generate(niche: dict, topic: str | None = None, avoid: list[str] | None = No
 def _polish(sc: dict, niche: dict) -> dict:
     """Второй проход-редактор: вычищает язык (англ/транслит), докручивает хук. Сохраняет число сегментов."""
     draft = {"hook": sc["hook"], "segments": [s["text"] for s in sc["segments"]], "outro": sc["outro"]}
+    voice_rule = niche.get("polish_voice") or "conversational 'you'"
     system = (
         "You are a strict short-video script editor. Improve the draft, rewriting ONLY the text and "
         "keeping the same number of segments and their order:\n"
         "1) Plain natural English, no filler.\n"
         "2) Sharper hook (curiosity or pattern-break), no weak openers.\n"
-        "3) Each segment = one idea, short, conversational 'you'. Keep the overall length "
+        f"3) Each segment = one idea, short, {voice_rule}. Keep the overall length "
         "(72-85 words total — a 30-35 second video; don't inflate and don't cut in half).\n"
         "4) No fabricated numbers or claims (bans/laws/'illegal') — every fact must stay TRUE. "
         "Keep the hook's technique and hold the payoff until the end.\n"

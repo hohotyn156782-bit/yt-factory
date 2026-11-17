@@ -269,11 +269,12 @@ def _archive_lic_ok(lic: str) -> bool:
     return False
 
 
-def _archive_org(query: str, used: set, cache: pathlib.Path) -> tuple[str, str] | None:
-    """Internet Archive (advancedsearch + metadata). Только PD / CC BY. Ошибки → None."""
+def _archive_org(query: str, used: set, cache: pathlib.Path, extra: str = "") -> tuple[str, str] | None:
+    """Internet Archive (advancedsearch + metadata). Только PD / CC BY. Ошибки → None.
+    extra — дополнительное условие поиска (archival: без зеркал YouTube)."""
     try:
         q = (f'({query}) AND mediatype:movies AND '
-             f'(licenseurl:*publicdomain* OR licenseurl:*creativecommons.org\\/licenses\\/by\\/*)')
+             f'(licenseurl:*publicdomain* OR licenseurl:*creativecommons.org\\/licenses\\/by\\/*)' + extra)
         s_url = "https://archive.org/advancedsearch.php?" + urllib.parse.urlencode({
             "q": q, "output": "json", "rows": 20,
             "fl[]": ["identifier", "title", "licenseurl"],
@@ -330,6 +331,438 @@ def _archive_org(query: str, used: set, cache: pathlib.Path) -> tuple[str, str] 
     except Exception:  # noqa: BLE001 — новый источник не должен ронять каскад
         return None
     return None
+
+
+# ──────────────── Архивные кадры (broll_mode "archival": настоящие фото/хроника/карты) ────────────────
+# Только лицензии, разрешающие коммерческое использование: PD / CC0 / CC BY / CC BY-SA
+# (+ «no known restrictions» Библиотеки Конгресса). NC/ND, GFDL-only, «Attribution»-кастом,
+# всё без явной свободной лицензии — мимо. Агентства (Getty/AP/Reuters/Pathé/BBC) — мимо даже с PD-меткой.
+# Каждый кадр проверяет Gemini vision (imagegen.archival_check): релевантность сцене, graphic
+# (трупы/кровь/раненые → возрастные ограничения), водяные знаки стоков. Нет кадра → карта кодом.
+
+_ARCH_UA = {"User-Agent": "yt-factory-archival/1.0 (educational history videos; python-urllib)"}
+_ARCH_BAD_SRC = re.compile(r"getty|associated press|\bap photo|reuters|path[eé]|\bbbc\b|corbis|alamy|"
+                           r"shutterstock|afp\b|bettmann|magnum", re.I)
+_ARCH_MIN_SIDE, _ARCH_MIN_LONG = 700, 1000     # мельче — мыло в вертикали 1080×1920
+_ARCH_CHECKS_PER_SLOT = 5                      # потолок vision-проверок на слот (время + квота Gemini)
+_ARCH_DEAD: set = set()                        # источники, отказавшие в этом запуске (403/капча)
+_VISION_FAILS = [0]                            # сбоев Gemini vision подряд; 3 → фото/хронику не берём (fail-closed)
+
+
+def _free_license(short: str, url: str = "") -> str | None:
+    """Нормализованное имя свободной лицензии или None. 'Public domain' | 'CC0' | 'CC BY 4.0' | 'CC BY-SA 3.0'."""
+    s = f"{short or ''} {url or ''}".lower().replace("_", " ")
+    if re.search(r"\b(nc|nd)\b|noncommercial|non-commercial|noderiv|no derivative|-nc|-nd|fair use", s):
+        return None
+    if "cc0" in s or "zero/1.0" in s:
+        return "CC0"
+    if re.search(r"public domain|publicdomain|\bpd\b|\bpd-|no known (copyright )?restrictions|no restrictions", s):
+        return "Public domain"
+    m = re.search(r"cc[ -]by(-sa)?(?:[ /-]?(\d\.\d)(?:[ /-]([a-z]{2,3})\b)?)?|"
+                  r"creativecommons\.org/licenses/by(-sa)?/(\d\.\d)(?:/([a-z]{2,3})\b)?", s)
+    if m:
+        sa = m.group(1) or m.group(4)
+        ver = m.group(2) or m.group(5) or ""
+        jur = m.group(3) or m.group(6) or ""          # портированная лицензия (3.0 de) — указываем как есть
+        if not jur:                                    # в коротком имени нет — берём из URL лицензии
+            u = re.search(r"creativecommons\.org/licenses/by(?:-sa)?/\d\.\d/([a-z]{2,3})\b", s)
+            jur = u.group(1) if u else ""
+        return f"CC BY{'-SA' if sa else ''} {ver}{' ' + jur if jur and jur != 'en' else ''}".strip()
+    return None
+
+
+def _strip_html(s: str, limit: int = 120) -> str:
+    s = re.sub(r'<span style="display: ?none;?">.*?</span>', " ", s or "", flags=re.S)
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s[:limit]
+
+
+_COMMONS_STD_W = (1920, 1280, 960)   # стандартные ширины превью Wikimedia (остальное и оригиналы → 429)
+
+
+def _commons_thumb(ii: dict) -> str:
+    """URL превью стандартной ширины: оригиналы ≤1920px Commons отдаёт «как есть», а их
+    upload.wikimedia.org для ботов режет 429 — строим /thumb/…/<W>px- сами."""
+    url = (ii.get("thumburl") or "").split("?")[0]
+    if "/thumb/" in url:
+        return url.replace("//upload.wikimedia.org/", "//thumb.wikimedia.org/", 1)
+    orig = (ii.get("url") or url).split("?")[0]
+    w = int(ii.get("width") or 0)
+    std = next((x for x in _COMMONS_STD_W if x < w), 0)
+    if not std or "/wikipedia/commons/" not in orig:
+        return ""                                     # превью нет → оригинал с upload.* всё равно даст 429
+    name = orig.rsplit("/", 1)[-1]
+    thumb = (orig.replace("/wikipedia/commons/", "/wikipedia/commons/thumb/", 1)
+             .replace("//upload.wikimedia.org/", "//thumb.wikimedia.org/", 1) + f"/{std}px-{name}")
+    return thumb + (".jpg" if name.lower().endswith((".tif", ".tiff")) else "")
+
+
+def _commons(query: str, used: set) -> list[dict]:
+    """Wikimedia Commons: поиск файлов-картинок + extmetadata (лицензия/автор). Без ключа."""
+    if "commons" in _ARCH_DEAD:
+        return []
+    url = "https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode({
+        "action": "query", "format": "json", "generator": "search",
+        "gsrsearch": f"{query} filetype:bitmap", "gsrnamespace": 6, "gsrlimit": 20,
+        "prop": "imageinfo", "iiprop": "url|size|extmetadata|mime", "iiurlwidth": 1920,   # только стандартные ширины превью, иначе upload.wikimedia.org → 429
+        "iiextmetadatafilter": "LicenseShortName|LicenseUrl|Artist|Credit|ImageDescription|Restrictions|ObjectName",
+    })
+    data = _http_json(url, headers=_ARCH_UA)
+    if not data:
+        return []
+    out = []
+    for p in (data.get("query", {}) or {}).get("pages", {}).values():
+        key = f"commons:{p.get('pageid')}"
+        ii = (p.get("imageinfo") or [{}])[0]
+        if key in used or not ii.get("thumburl") or not _commons_thumb(ii):
+            continue
+        m = {k: (v or {}).get("value", "") for k, v in (ii.get("extmetadata") or {}).items()}
+        lic = _free_license(m.get("LicenseShortName", ""), m.get("LicenseUrl", ""))
+        if not lic or "trademark" in (m.get("Restrictions") or "").lower():
+            continue
+        author = _strip_html(m.get("Artist", "")) or "Unknown author"
+        credit = _strip_html(m.get("Credit", ""))
+        if _ARCH_BAD_SRC.search(f"{author} {credit} {p.get('title', '')} {_strip_html(m.get('ImageDescription', ''), 2000)}"):
+            continue
+        out.append({"key": key, "source": "wikimedia_commons", "file_url": _commons_thumb(ii),
+                    "page_url": ii.get("descriptionurl", ""), "title": p.get("title", "").removeprefix("File:"),
+                    "author": author, "license": lic, "license_url": m.get("LicenseUrl", ""),
+                    "w": ii.get("width", 0), "h": ii.get("height", 0), "kind": "image",
+                    "text": f"{p.get('title', '')} {_strip_html(m.get('ImageDescription', ''))}",
+                    "order": p.get("index", 99)})
+    return out
+
+
+def _loc(query: str, used: set) -> list[dict]:
+    """Library of Congress (loc.gov JSON API): только «No known restrictions»/PD. Без ключа.
+    С некоторых IP сайт отдаёт 403 (капча Cloudflare) — тогда источник выключается до конца запуска."""
+    if "loc" in _ARCH_DEAD:
+        return []
+    url = "https://www.loc.gov/photos/?" + urllib.parse.urlencode({"q": query, "fo": "json", "c": 20})
+    data = core.http_json(url, headers=_ARCH_UA, retries=1)
+    if not data:
+        _ARCH_DEAD.add("loc")
+        return []
+    out = []
+    for r in data.get("results", []):
+        rid = r.get("id", "")
+        key = f"loc:{rid}"
+        rights = " ".join(str(x) for x in (r.get("rights_advisory"), (r.get("item") or {}).get("rights_advisory"),
+                                           r.get("rights")) if x)
+        if key in used or "no known restrictions" not in rights.lower():
+            continue
+        imgs = [u for u in (r.get("image_url") or []) if isinstance(u, str) and u.startswith("http")]
+        if not imgs:
+            continue
+        big = imgs[-1].split("#")[0]
+        author = _strip_html(", ".join(r.get("contributor") or [])) or "Library of Congress"
+        out.append({"key": key, "source": "library_of_congress", "file_url": big, "page_url": rid,
+                    "title": _strip_html(r.get("title", "")), "author": author, "license": "Public domain",
+                    "license_url": "https://www.loc.gov/legal/", "w": 0, "h": 0, "kind": "image",
+                    "text": f"{r.get('title', '')} {' '.join(r.get('subject') or [])}", "order": len(out)})
+    return out
+
+
+_SPACE_RE = re.compile(r"\b(apollo|nasa|rocket|launch|astronaut|moon|lunar|orbit|satellite|space|shuttle|"
+                       r"sputnik|gemini|mercury|mars|planet|telescope)\b", re.I)
+
+
+def _nasa_images(query: str, used: set) -> list[dict]:
+    """NASA Image Library (images-api.nasa.gov) — PD-фото NASA; только для космических сцен."""
+    if not _SPACE_RE.search(query or "") or "nasa" in _ARCH_DEAD:
+        return []
+    data = _http_json("https://images-api.nasa.gov/search?" + urllib.parse.urlencode(
+        {"q": query, "media_type": "image", "page_size": 15}), headers=_ARCH_UA)
+    if not data:
+        return []
+    out = []
+    for it in (data.get("collection", {}) or {}).get("items", [])[:15]:
+        d = (it.get("data") or [{}])[0]
+        nid = d.get("nasa_id")
+        key = f"nasaimg:{nid}"
+        who = f"{d.get('secondary_creator', '')} {d.get('photographer', '')}"
+        if (not nid or key in used or _ARCH_BAD_SRC.search(who + " " + d.get("description", ""))
+                or re.search(r"©|copyright|\besa\b|jaxa|roscosmos|courtesy of", f"{who} {d.get('description', '')}", re.I)):
+            continue                                  # сторонний автор/© — не PD, мимо
+        out.append({"key": key, "source": "nasa_images",
+                    "file_url": f"https://images-assets.nasa.gov/image/{urllib.parse.quote(nid)}/{urllib.parse.quote(nid)}~large.jpg",
+                    "page_url": f"https://images.nasa.gov/details/{urllib.parse.quote(nid)}",
+                    "title": d.get("title", ""), "author": d.get("photographer") or d.get("center") or "NASA",
+                    "license": "Public domain", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+                    "w": 0, "h": 0, "kind": "image", "text": f"{d.get('title', '')} {d.get('description', '')[:300]}",
+                    "order": len(out)})
+    return out
+
+
+def _arch_queries(query: str) -> list[str]:
+    """Запрос сцены → упрощения для архивного поиска (полный → без хвоста → 3 первых значимых слова)."""
+    q = re.sub(r"\s+", " ", re.sub(r"[^\w\s'-]", " ", query or "")).strip()
+    words = q.split()
+    out = [q]
+    if len(words) > 4:
+        out.append(" ".join(words[:4]))
+    stop = {"over", "with", "from", "into", "under", "during", "after", "before", "their", "about", "near"}
+    sig = [w for w in words if (len(w) >= 4 or w.isdigit()) and w.lower() not in stop]
+    if len(sig) >= 2:
+        out.append(" ".join(sig[:3]))
+    names = [w for w in words if w[:1].isupper() or w.isdigit()]   # имена/места/годы — костяк архивного поиска
+    if len(names) >= 2:
+        out.append(" ".join(names[:3]))
+    seen, res = set(), []
+    for x in out:
+        if x and x.lower() not in seen:
+            seen.add(x.lower())
+            res.append(x)
+    return res
+
+
+def _arch_frame(src: pathlib.Path, out: pathlib.Path, focus_x: float = 0.5) -> str | None:
+    """Фото → вертикальный кадр с запасом под Ken Burns (assemble._big_wh): размытая заливка
+    из того же фото + само фото по ширине (широкие кадрируются до ~1.1:1 вокруг объекта).
+    Портретные/квадратные документы и горизонтальный формат long — кроп-cover по центру интереса."""
+    from PIL import Image, ImageFilter, ImageOps, ImageEnhance
+    try:
+        im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    except Exception:  # noqa: BLE001
+        return None
+    bw, bh = int(core.W * 1.15), int(core.H * 1.15)
+    im = ImageOps.autocontrast(im, cutoff=1)
+
+    def cover(img, w, h, fx):
+        s = max(w / img.width, h / img.height)
+        img = img.resize((max(w, int(img.width * s)), max(h, int(img.height * s))), Image.LANCZOS)
+        x = int(min(max(fx * img.width - w / 2, 0), img.width - w))
+        y = (img.height - h) // 2
+        return img.crop((x, y, x + w, y + h))
+
+    a = im.width / im.height
+    if _landscape() or abs(a - bw / bh) < 0.08:
+        canvas = cover(im, bw, bh, focus_x)
+    else:
+        bg = cover(im, bw, bh, 0.5).filter(ImageFilter.GaussianBlur(40))
+        canvas = ImageEnhance.Brightness(bg).enhance(0.45)
+        fa = min(a, 1.1)                                 # широкие — до ~1.1:1 вокруг объекта
+        if fa < a:
+            cw = int(im.height * fa)
+            x = int(min(max(focus_x * im.width - cw / 2, 0), im.width - cw))
+            im = im.crop((x, 0, x + cw, im.height))
+        fw = bw
+        fh = int(fw / (im.width / im.height))
+        if fh > int(bh * 0.8):                            # высокие документы — по высоте 80%
+            fh = int(bh * 0.8)
+            fw = int(fh * im.width / im.height)
+        fg = im.resize((fw, fh), Image.LANCZOS)
+        canvas.paste(fg, ((bw - fw) // 2, int((bh - fh) * 0.42)))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out, quality=92)
+    return str(out)
+
+
+def _arch_photo(cand: dict, scene: str, niche: dict, workdir: pathlib.Path, i: int, narration: str = "") -> dict | None:
+    """Скачать кандидата → разрешение → vision-проверка → вертикальный кадр. None — брак."""
+    from pipeline import imagegen
+    ext = ".png" if cand["file_url"].lower().endswith(".png") else ".jpg"
+    dest = core.CACHE_DIR / f"arch_{hashlib.md5(cand['file_url'].encode()).hexdigest()[:16]}{ext}"
+    if not _download_arch(cand["file_url"], dest):
+        return None
+    try:
+        from PIL import Image
+        with Image.open(dest) as im:
+            w, h = im.size
+    except Exception:  # noqa: BLE001
+        return None
+    ow, oh = cand.get("w") or w, cand.get("h") or h            # у Commons — размер оригинала
+    if (min(ow, oh) < _ARCH_MIN_SIDE or max(ow, oh) < _ARCH_MIN_LONG or min(w, h) < 600
+            or not 0.45 <= w / h <= 2.6):                # газетная полоса/панорама — в вертикали нечитаемы
+        core.log("archival: мелкий кадр — мимо", level="debug", slot=i, size=f"{ow}x{oh}", url=cand["page_url"])
+        return None
+    chk = imagegen.archival_check(str(dest), scene, niche.get("frame_rules"), caption=_strip_html(cand["text"], 400),
+                                  narration=narration)
+    if not chk["checked"]:                       # кратковременный 429/503 — одна повторная попытка через паузу
+        time.sleep(15)
+        chk = imagegen.archival_check(str(dest), scene, niche.get("frame_rules"),
+                                      caption=_strip_html(cand["text"], 400), narration=narration)
+    if not chk["checked"]:                       # Gemini недоступен → fail-closed: непроверенное фото может
+        _vision_fail()                           # оказаться graphic (трупы/кровь) — в archival не берём
+        core.log("archival: vision недоступен — фото не проверить", level="warn", slot=i)
+        return None
+    _VISION_FAILS[0] = 0
+    if not chk["ok"]:
+        core.log("archival: кадр забракован", level="info", slot=i, issues=chk["issues"],
+                 subject=chk.get("subject", ""), url=cand["page_url"])
+        return None
+    frame = _arch_frame(dest, workdir / f"arch_{i:02d}.jpg", chk.get("focus_x", 0.5))
+    if not frame:
+        return None
+    return {"path": frame, "kind": "image", "source": cand["source"], "source_url": cand["page_url"],
+            "file_url": cand["file_url"], "title": cand["title"], "author": cand["author"],
+            "license": cand["license"], "license_url": cand["license_url"],
+            "relevance": chk.get("relevance"), "subject": chk.get("subject", ""), "key": cand["key"]}
+
+
+def _vision_fail() -> None:
+    _VISION_FAILS[0] += 1
+    if _VISION_FAILS[0] >= 3:
+        _ARCH_DEAD.add("vision")
+        core.log("archival: vision недоступен 3 раза подряд — дальше только карты", level="warn")
+
+
+def _download_arch(url: str, dest: pathlib.Path) -> bool:
+    if dest.exists() and dest.stat().st_size > 10_000:
+        return True
+    return core.http_download(url, dest, headers=_ARCH_UA, timeout=90, min_bytes=10_000)
+
+
+def _arch_video(query: str, scene: str, niche: dict, workdir: pathlib.Path, i: int, dur: float,
+                used: set, narration: str = "") -> dict | None:
+    """Хроника Internet Archive (PD / CC BY, _archive_org) → нарезка куска dur → vision-проверка
+    кадра из середины куска (2 смещения на фильм). Кусок ложится как обычный видео-клип.
+    Зеркала YouTube-роликов (identifier youtube-*) мимо: чья плёнка — неизвестно, риск Content ID."""
+    from pipeline import imagegen
+    if "archive" in _ARCH_DEAD:
+        return None
+    res = _archive_org(query, used, core.CACHE_DIR, extra=" AND NOT identifier:youtube-*")
+    if not res:
+        return None
+    path, page = res
+    ident = page.rsplit("/", 1)[-1]
+    if ident.lower().startswith("youtube-"):
+        return None
+    meta = (_http_json(f"https://archive.org/metadata/{ident}") or {}).get("metadata", {}) or {}
+    lic = _free_license("", meta.get("licenseurl", ""))
+    if not lic or lic.startswith("CC BY-SA"):                  # _archive_org пропускает только PD / CC BY
+        return None
+    total = core.media_duration(path)
+    if total < dur + 4:
+        return None
+    for k, frac in enumerate((0.35, 0.65)):
+        off = max(1.0, min(total * frac, total - dur - 1.0))
+        clip = workdir / f"archv_{i:02d}_{k}.mp4"
+        probe = workdir / f"archv_{i:02d}_{k}.jpg"
+        try:
+            core.run(["ffmpeg", "-y", "-ss", f"{off:.2f}", "-i", str(path), "-t", f"{dur + 0.3:.2f}", "-an",
+                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", str(clip)])
+            core.run(["ffmpeg", "-y", "-ss", f"{dur / 2:.2f}", "-i", str(clip), "-frames:v", "1", str(probe)])
+        except Exception as e:  # noqa: BLE001
+            core.log_error("broll.arch_video", e, slot=i)
+            continue
+        chk = imagegen.archival_check(str(probe), scene, niche.get("frame_rules"),
+                                      caption=_strip_html(str(meta.get("title", "")), 400), narration=narration)
+        if not chk["checked"]:                   # fail-closed, как у фото
+            _vision_fail()
+            return None
+        _VISION_FAILS[0] = 0
+        if chk["ok"]:
+            author = _strip_html(meta.get("creator", "")) if isinstance(meta.get("creator"), str) else "Internet Archive"
+            return {"path": str(clip), "kind": "stock", "source": "archive_org", "source_url": page,
+                    "file_url": page, "title": _strip_html(meta.get("title", ident) if isinstance(meta.get("title"), str) else ident),
+                    "author": author or "Internet Archive", "license": lic,
+                    "license_url": meta.get("licenseurl", ""), "relevance": chk.get("relevance"),
+                    "subject": chk.get("subject", ""), "key": f"archive:{ident}"}
+        core.log("archival: кусок хроники забракован", level="info", slot=i, issues=chk["issues"], url=page)
+    return None
+
+
+def _arch_map(spec: str, niche: dict, workdir: pathlib.Path, i: int, variant: int = 0) -> dict | None:
+    from pipeline import maps
+    pal = niche.get("palette") or [["0a0a14", "e4572e"]]
+    accent = pal[0][1] if len(pal[0]) > 1 else "e4572e"
+    path = maps.render(spec, workdir / f"map_{i:02d}.png", int(core.W * 1.15), int(core.H * 1.15), accent=accent,
+                       variant=variant)
+    if not path:
+        return None
+    return {"path": path, "kind": "image", "source": "natural_earth_map", "source_url": maps.NE_PAGE,
+            "file_url": maps.NE_PAGE, "title": spec, "author": "Natural Earth (map drawn in code)",
+            "license": "Public domain", "license_url": "https://www.naturalearthdata.com/about/terms-of-use/"}
+
+
+def _archival_slot(query: str, niche: dict, workdir: pathlib.Path, i: int, dur: float, used: set,
+                   state: dict, narration: str = "") -> dict:
+    """Один слот archival: MAP:-сцена → карта; иначе фото (Commons → LoC → NASA) с vision-проверкой,
+    каждый video_every-й слот сначала пробует хронику; ничего не прошло → карта по стране из
+    текста сцены / последней карте ролика / niche.map_default; совсем ничего → градиент."""
+    from pipeline import maps
+    drawn = state.setdefault("maps_drawn", {})        # спецификация (нижний регистр) → сколько раз нарисована
+    if maps.parse_spec(query):
+        spec = query
+        if not maps.find_region(maps.parse_spec(query)["regions"][0]):   # «MAP: Russian America 1867»
+            spec = maps.spec_from_text(re.sub(r"^\s*map\s*:\s*", "", query, flags=re.I)) or query
+        state["last_map"] = spec
+        text_q = re.sub(r"^\s*map\s*:\s*", "", query, flags=re.I).replace("->", " ")
+        if not drawn.get(maps.canonical(spec)) and (item := _arch_map(spec, niche, workdir, i)):
+            drawn[maps.canonical(spec)] = 1
+            return item
+        query = text_q                                # та же карта уже была — сначала ищем фото места
+    every = int(niche.get("archival_video_every", 4) or 0) if "vision" not in _ARCH_DEAD else 0
+    want_video = bool(every) and i > 0 and i % every == 0
+    if want_video:
+        item = _arch_video(query, query, niche, workdir, i, dur, used, narration)
+        if item:
+            return item
+    checks = 0 if "vision" not in _ARCH_DEAD else _ARCH_CHECKS_PER_SLOT
+    for q in _arch_queries(query):
+        cands = _commons(q, used) + _loc(q, used) + _nasa_images(q, used)
+        qt = _qtok(query)
+        cands.sort(key=lambda c: (-_overlap(qt, c["text"]), c["order"]))   # ближе к сцене — раньше
+        for c in cands:
+            if checks >= _ARCH_CHECKS_PER_SLOT or "vision" in _ARCH_DEAD:
+                break
+            if c["key"] in used or c["key"] in state.setdefault("rejected", set()):
+                continue
+            checks += 1
+            item = _arch_photo(c, query, niche, workdir, i, narration)
+            if item:
+                used.add(c["key"])
+                return item
+            state["rejected"].add(c["key"])  # брак под эту сцену — в этом ролике больше не проверяем
+        if checks >= _ARCH_CHECKS_PER_SLOT or "vision" in _ARCH_DEAD:
+            break
+    if not want_video and "vision" not in _ARCH_DEAD:
+        item = _arch_video(query, query, niche, workdir, i, dur, used, narration)
+        if item:
+            return item
+    spec = maps.spec_from_text(query) or state.get("last_map") or state.get("last_fallback_map") or (
+        f"MAP: {niche['map_default']}" if niche.get("map_default") else None)
+    if spec:
+        key = maps.canonical(spec)
+        item = _arch_map(spec, niche, workdir, i, variant=drawn.get(key, 0))
+        if item:
+            drawn[key] = drawn.get(key, 0) + 1
+            state["last_fallback_map"] = spec
+            core.log("archival: кадра нет — карта", level="info", slot=i, q=query, map=spec)
+            return item
+    return {"path": _gen_gradient(niche.get("palette", []), i, dur, workdir / f"bg_{i:02d}.mp4"),
+            "kind": "gen", "source": "generated", "source_url": "", "query": query}
+
+
+def archival_sources(clips: list[dict]) -> list[dict]:
+    """Журнал источников для sources.json: кадр → страница, автор, лицензия."""
+    out = []
+    t = 0.0
+    for k, c in enumerate(clips):
+        if c.get("license"):
+            out.append({"slot": k, "start": round(t, 2), "dur": round(c.get("dur", 0), 2),
+                        "source": c["source"], "page_url": c.get("source_url", ""),
+                        "file_url": c.get("file_url", ""), "title": c.get("title", ""),
+                        "author": c.get("author", ""), "license": c["license"],
+                        "license_url": c.get("license_url", ""), "query": c.get("query", ""),
+                        "subject": c.get("subject", ""), "relevance": c.get("relevance"),
+                        "reused": bool(c.get("reused"))})
+        t += c.get("dur", 0)
+    return out
+
+
+def attribution_line(sources: list[dict]) -> str:
+    """Строка атрибуции для описания — только для CC BY / CC BY-SA (PD/CC0 её не требуют)."""
+    names = {"wikimedia_commons": "Wikimedia Commons", "archive_org": "Internet Archive"}
+    parts, seen = [], set()
+    for s in sources:
+        if not s["license"].startswith("CC BY") or s["page_url"] in seen:
+            continue
+        seen.add(s["page_url"])
+        parts.append(f"{names.get(s['source'], s['source'])} — {s['author']}, {s['license']} ({s['page_url']})")
+    return ("Images: " + "; ".join(parts)) if parts else ""
 
 
 # ──────────────────────────── Генеративный фолбэк ────────────────────────────
@@ -595,6 +1028,7 @@ def _pollinations_video(query: str, niche: dict, workdir: pathlib.Path, i: int) 
 def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
               mode: str = "stock", character: str = "") -> list[dict]:
     """mode: 'stock' (Pexels) | 'ai_images' (картинки+KenBurns) | 'ai_video_hook' (картинки + видео на хук)
+    | 'archival' (настоящие архивные фото/хроника со свободной лицензией + карты кодом, см. _archival_slot)
     | 'mixed' (long: сток + доля FLUX-картинок с Ken Burns для сцен, которых нет в стоке —
     историческая реконструкция; доля из niche['broll_ai_ratio'], дефолт 0.35).
     character — для story: единый персонаж во всех ИИ-кадрах (визуальная связность)."""
@@ -631,6 +1065,10 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
     ai_ratio = float(niche.get("broll_ai_ratio", 0.35) or 0.0) if mode == "mixed" else 0.0
     ai_done = 0
     era_ai_frames: list[dict] = []   # успешные AI-кадры эпохо-слотов — пул для повтора при исчерпании квот
+    arch_state: dict = {}            # archival: последняя карта ролика (фолбэк для слотов без кадра)
+    if mode == "archival":           # сбои vision прошлого ролика этого процесса не переносим на новый
+        _ARCH_DEAD.discard("vision")
+        _VISION_FAILS[0] = 0
 
     cursor = 0.0
     for i, dur in enumerate(slot_plan):
@@ -638,6 +1076,11 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
         if is_long:
             # long: запрос из семейства главы (ротация внутри семейства, батчинг Pexels-кэшем)
             search_query = _long_query(fams, cursor + dur / 2, fam_rot, query)
+        elif i < len(INTRO_SLOTS) and mode == "archival":
+            # интро: запросы РАЗНЫХ сегментов (контраст кадров), но без модификаторов плана —
+            # «close up» ломает архивный поиск и MAP:-спецификации
+            qs = [q for q in ((c.get("broll_query") or "").strip() for c in timed_chunks) if q]
+            search_query = qs[i] if len(qs) > i else query
         elif i < len(INTRO_SLOTS):
             # интро-слоты (первые ~3с): вариативный запрос → контрастные кадры (pattern-interrupt).
             # search_query идёт в источники; query остаётся базой для метаданных и fallback-отката.
@@ -650,6 +1093,15 @@ def fetch_for(timed_chunks: list[dict], niche: dict, workdir: pathlib.Path,
         # иначе сток вернёт случайный нерелевантный кадр (находка аудита).
         if not _qtok(search_query):
             search_query = fallback_q or search_query
+        if mode == "archival":                            # настоящие фото/хроника/карты, без стока и AI
+            narration = next((c.get("text", "") for c in timed_chunks
+                              if c["start"] <= cursor + dur / 2 < c["end"]), "")
+            item = _archival_slot(search_query, niche, workdir, i, dur, used, arch_state, narration)
+            item.setdefault("query", search_query)
+            item["dur"] = dur
+            out.append(item)
+            cursor += dur
+            continue
         # mixed: этот слот — AI-картинка? Равномерное распределение доли ai_ratio по таймлайну,
         # интро (первые LONG_INTRO_SLOTS) не трогаем — КРОМЕ эпохо-запросов. Эпохо-специфичный
         # запрос (год/эра) идёт в AI ВНЕ квоты ratio и даже в интро: стока 1860-х не существует,

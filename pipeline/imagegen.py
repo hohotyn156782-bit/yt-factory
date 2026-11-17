@@ -405,10 +405,39 @@ def frame_check(path: str, niche: dict, query: str = "") -> dict:
               f"Requested scene: {query}. Expected style: {style}. Extra channel rules: {rules or 'none'}. "
               'Return STRICTLY JSON {"text": bool, "deformed": bool, "people": bool, "blank": bool, '
               '"wrong_style": bool, "rule_violation": bool, "relevance": int, "issues": ["short notes"]}.')
+    d = _gemini_vision_json(prompt, path, "relevance")
+    if d is None:
+        return {"ok": True, "issues": [], "checked": False}
+    if d.get("_unreadable"):
+        return {"ok": False, "issues": ["файл кадра не читается"], "checked": True}
+    flags = [f for f in ("text", "deformed", "people", "blank", "wrong_style", "rule_violation")
+             if str(d.get(f)).strip().lower() in ("true", "1", "yes")]
+    rel = _rel10(d["relevance"])
+    if rel < 4:
+        flags.append(f"unrelated:{d['relevance']}")
+    notes = d.get("issues") or []
+    notes = [notes] if isinstance(notes, str) else [str(x) for x in notes]
+    return {"ok": not flags, "issues": flags + notes[:3], "checked": True, "model": d.get("_model")}
+
+
+def _rel10(v) -> float:
+    try:
+        rel = float(v)
+        return rel / 10 if rel > 10 else rel      # модель ответила по шкале 0-100
+    except (TypeError, ValueError):
+        return 10.0
+
+
+def _gemini_vision_json(prompt: str, path: str, required_key: str) -> dict | None:
+    """Один кадр + промпт → JSON-вердикт Gemini vision (ключи по кругу, lite-модели).
+    None — ключей нет / все упали; {"_unreadable": True} — файл не читается."""
+    keys = [k.strip() for k in os.environ.get("GEMINI_API_KEY", "").split(",") if k.strip()]
+    if not keys:
+        return None
     try:
         data = base64.b64encode(pathlib.Path(path).read_bytes()).decode()
     except OSError:
-        return {"ok": False, "issues": ["файл кадра не читается"], "checked": True}
+        return {"_unreadable": True}
     mime = "image/png" if str(path).endswith(".png") else "image/jpeg"
     body = json.dumps({"contents": [{"parts": [{"text": prompt},
                                                {"inline_data": {"mime_type": mime, "data": data}}]}],
@@ -428,24 +457,62 @@ def frame_check(path: str, niche: dict, query: str = "") -> dict:
                 d = json.loads(txt)
                 if isinstance(d, list) and d and isinstance(d[0], dict):
                     d = d[0]
-                if not isinstance(d, dict) or "relevance" not in d:
+                if not isinstance(d, dict) or required_key not in d:
                     continue                      # не та схема — это не вердикт, спрашиваем дальше
-                flags = [f for f in ("text", "deformed", "people", "blank", "wrong_style", "rule_violation")
-                         if str(d.get(f)).strip().lower() in ("true", "1", "yes")]
-                try:
-                    rel = float(d["relevance"])
-                    if rel > 10:                  # модель ответила по шкале 0-100
-                        rel /= 10
-                except (TypeError, ValueError):
-                    rel = 10.0
-                if rel < 4:
-                    flags.append(f"unrelated:{d['relevance']}")
-                notes = d.get("issues") or []
-                notes = [notes] if isinstance(notes, str) else [str(x) for x in notes]
-                return {"ok": not flags, "issues": flags + notes[:3], "checked": True, "model": model}
+                d["_model"] = model
+                return d
             except Exception:  # noqa: BLE001 — 429/401/сеть/непарсибельно → следующий ключ/модель
                 continue
-    return {"ok": True, "issues": [], "checked": False}
+    return None
+
+
+def archival_check(path: str, query: str, rules: list | None = None, caption: str = "",
+                   narration: str = "") -> dict:
+    """Проверка РЕАЛЬНОГО архивного кадра (фото/кадр хроники) под сцену: релевантность 0-10,
+    флаги graphic (трупы/кровь/раненые — возрастные ограничения, демонетизация), watermark
+    (логотипы стоков/агентств), blank, title_card. Люди и старые надписи на документах — норма.
+    {ok, issues, relevance, focus_x, checked}. Нет ключей → ok=True, checked=False."""
+    prompt = ("You inspect one REAL archival photo or newsreel frame proposed as b-roll for a history "
+              "YouTube Short. Answer each flag honestly with true/false. "
+              "graphic: dead bodies, corpses, blood, visible wounds, injured or bleeding people, executions, "
+              "a weapon being fired at a person, nudity (soldiers, weapons, ruins or smoke alone are NOT graphic). "
+              "watermark: a stock-agency or TV logo, watermark, copyright stamp or website URL overlaid on the "
+              "image (museum catalogue numbers on the border or original printed text in a document are NOT "
+              "watermarks). blank: mostly blank, black, test pattern or unrecognisable blur. "
+              "title_card: the frame is mostly a film title card, slate or caption text and the scene does not "
+              "ask for a document. "
+              "rule_violation: something VISIBLE in the image breaks one of the extra rules below. "
+              "name_only: the image matches the scene only through a shared name or word (a ship, street, "
+              "hotel or product named after a country/person) and not through its actual subject. "
+              "relevance: 0-10, how well the image fits the requested scene as illustration: the right "
+              "event, place, era or object scores 7+, the right era/country but a generic subject 5-6, a "
+              "different subject, era or country below 5. "
+              "focus_x: 0.0-1.0, horizontal position of the main subject (0.5 = centre). "
+              + (f"The archive's own caption of this image: \"{caption[:400]}\" — trust it for place and date; "
+                 "if it names a different place, country or year than the requested scene, relevance is below 5. "
+                 if caption else "")
+              + (f"Narration spoken over this shot: \"{narration[:300]}\" — the image must illustrate what is said; "
+                 "a period image unrelated to the narration (a random portrait, a ship that only shares a name) "
+                 "scores below 5. " if narration else "") +
+              f"Requested scene: {query}. Extra rules: {'; '.join(rules or []) or 'none'}. "
+              'Return STRICTLY JSON {"graphic": bool, "watermark": bool, "blank": bool, "title_card": bool, '
+              '"rule_violation": bool, "name_only": bool, "relevance": int, "focus_x": float, "subject": "what the image shows, 5-10 words"}.')
+    d = _gemini_vision_json(prompt, path, "relevance")
+    if d is None:
+        return {"ok": True, "issues": [], "relevance": None, "focus_x": 0.5, "checked": False}
+    if d.get("_unreadable"):
+        return {"ok": False, "issues": ["unreadable"], "relevance": 0, "focus_x": 0.5, "checked": True}
+    flags = [f for f in ("graphic", "watermark", "blank", "title_card", "rule_violation", "name_only")
+             if str(d.get(f)).strip().lower() in ("true", "1", "yes")]
+    rel = _rel10(d["relevance"])
+    if rel < 6:
+        flags.append(f"unrelated:{d['relevance']}")
+    try:
+        fx = min(1.0, max(0.0, float(d.get("focus_x", 0.5))))
+    except (TypeError, ValueError):
+        fx = 0.5
+    return {"ok": not flags, "issues": flags, "relevance": rel, "focus_x": fx,
+            "subject": str(d.get("subject", ""))[:120], "checked": True, "model": d.get("_model")}
 
 
 def generate(query: str, niche: dict, out: pathlib.Path, seed: int = 0, character: str = "") -> str | None:

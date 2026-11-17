@@ -178,6 +178,14 @@ def _build_captions(sc: dict, disclaimer: str = "", ai_used: bool = False,
     }
 
 
+def _write_sources(clips: list[dict], out_dir: pathlib.Path) -> list[dict]:
+    """sources.json — журнал источников архивных кадров (страница, автор, лицензия). Пусто → без файла."""
+    sources = broll.archival_sources(clips)
+    if sources:
+        (out_dir / "sources.json").write_text(json.dumps(sources, ensure_ascii=False, indent=2), encoding="utf-8")
+    return sources
+
+
 def _originality_gate(niche: dict, sc: dict, regen) -> dict:
     """Ниши сети (network.py) несут ролик-источник в niche['_source']. Схожесть сценария с ним
     > 20% → одна перегенерация с жёстким требованием другого угла; снова > 20% → брак попытки
@@ -293,6 +301,10 @@ def _build_once(niche_id: str, topic: str | None = None, broll_mode: str | None 
     # пробрасывается из meta['serial'] (Фаза 4); сейчас обычная история.
     sc["caption"] = _story_caption(sc, niche, serial_part=sc.get("_serial_part")) or sc.get("caption", "")
     captions = _build_captions(sc, disclaimer=disclaimer, ai_used=False, niche=niche)
+    sources = _write_sources(clips, out_dir)
+    attribution = broll.attribution_line(sources)
+    if attribution:                              # CC BY / BY-SA требуют атрибуции в описании
+        captions["youtube"]["description"] += "\n\n" + attribution
     meta = {
         "niche": niche_id,
         "lang": sc["lang"],
@@ -303,10 +315,11 @@ def _build_once(niche_id: str, topic: str | None = None, broll_mode: str | None 
         "hashtags": sc.get("hashtags", []),
         "captions": captions,
         "stock_used": sum(1 for c in clips if c["kind"] == "stock"),
-        "ai_images": sum(1 for c in clips if c["kind"] == "image"),
+        "ai_images": sum(1 for c in clips if c["kind"] == "image" and not c.get("license")),
         "generated_bg": sum(1 for c in clips if c["kind"] == "gen"),
         "credits": [{"source": c["source"], "url": c.get("source_url", ""), "query": c.get("query", "")}
-                    for c in clips if c["kind"] == "stock"],
+                    for c in clips if c["kind"] == "stock" or c.get("license")],
+        "archival_sources": len(sources),
         "created": core._now().isoformat(),
         "posted": {},
         "qa": qa_result,
@@ -441,8 +454,12 @@ def _build_once_long(niche: dict, topic: str | None) -> dict:
     chapter_lines = ["00:00 Introduction"] + [
         f"{_mmss(ch_starts.get(i, 0))} {c['heading']}" for i, c in enumerate(sc.get("chapters", []))]
     description = (sc.get("description", "") or "").replace("{CHAPTERS}", "\n".join(chapter_lines))
+    sources = _write_sources(clips, out_dir)
+    attribution = broll.attribution_line(sources)
+    if attribution:                              # CC BY / BY-SA требуют атрибуции в описании
+        description += "\n\n" + attribution
 
-    ai_images = sum(1 for c in clips if c["kind"] == "image")
+    ai_images = sum(1 for c in clips if c["kind"] == "image" and not c.get("license"))   # архивные фото/карты — не AI
     meta = {
         "niche": niche_id,
         "lang": sc["lang"],
@@ -462,7 +479,8 @@ def _build_once_long(niche: dict, topic: str | None) -> dict:
         # фотореалистичные AI-кадры в кадре → при загрузке нужна галка YouTube "altered content"
         "ai_disclosure": ai_images > 0,
         "credits": [{"source": c["source"], "url": c.get("source_url", ""), "query": c.get("query", "")}
-                    for c in clips if c["kind"] == "stock"],
+                    for c in clips if c["kind"] == "stock" or c.get("license")],
+        "archival_sources": len(sources),
         "created": core._now().isoformat(),
         "posted": {},
         "qa": qa_result,

@@ -88,3 +88,17 @@
 - Не трогать `~/projects/content-factory` (боевой RU-автопилот) — только читать/копировать.
 - Никакого чужого контента/реаплоадов (Content ID, бан) — только оригинал: свой сценарий + лицензионный сток/PD/AI.
 - Не класть тяжёлые данные на C: (диск переполнялся) — выводы рендеров на D: или в CI-артефакты.
+
+## Archival-режим для Archive Answers + Pin Drop Why — 2026-11-17
+- [x] `broll_mode: "archival"` (pipeline/broll.py): Wikimedia Commons (PD/CC0/CC BY/CC BY-SA, превью через thumb.wikimedia.org) → LoC (403 Cloudflare с наших IP, авто-выкл) → NASA Images (космос) → хроника Internet Archive (PD/CC BY, без youtube-зеркал); Gemini vision `archival_check` (релевантность ≥6 с подписью архива, graphic/watermark/title_card/rule_violation) — живой тест: 2 из 3 фото раненых отбракованы, 3-е без раненых в кадре.
+- [x] Карты кодом `pipeline/maps.py` (Natural Earth PD, ортографический глобус, подсветка + стрелка, без подписей).
+- [x] sources.json + строка атрибуции CC BY/BY-SA в описании; ai_disclosure не считает архивные кадры AI.
+- [x] Ниши net_machines(+long) → Archive Answers (am_onyx, история «почему»), net_geo(+long) → archival; `safety_rule`, `broll_query_rule`, `polish_voice`, `target_words` — поля ниши.
+- [x] Офлайн-тесты 55/55: /mnt/d/yt_network/archival_test/test_archival.py
+- [x] Пилоты (v5) собраны и опубликованы владельцем: Archive Answers «Why US Lost Vietnam» 44.2 с, Pin Drop Why «Why Russia Sold Alaska» 39.6 с — /mnt/d/yt_network/ready_archival/<niche>/ (mp4, POST.txt, sources.json, contact_sheet.jpg). Темы занесены в state/cfdata/factory.db как built.
+- [x] Verifier №1: PARTIALLY CONFIRMED (лицензии/атрибуция/рефакторинг ок; дефекты: fail-open vision, повтор фото без проверки, NASA ©, юрисдикция лицензии, карта по 1 стране) → всё исправлено; повтор одного файла в ролике запрещён (просьба владельца).
+- [x] Явная тема больше не уплывает в цикле само-улучшения сценария (v2/v6 уходили на Лигу Наций/Берлинскую стену; v7 остался на Вьетнаме).
+- Пилоты v1–v3 разобраны по контакт-листам (Сидней вместо Нью-Йорка, карта США вместо России, 4 карты подряд, «you»-обращение) — всё починено в подборе.
+- ⚠️ Не трогал: в topics_db остаются висячие резервации промежуточных тем сценария (status=reserved) — блокируют похожие темы.
+- ⚠️ Качество сценариев (LLM): упрощения до одной причины и спорные факты встречаются (Вьетнам v5: «Tet… making withdrawal impossible», «hidden resolution») — нужен факт-чек-проход.
+- ⚠️ Подбор: одна фраза-хук может занять 4–6 слотов одним сюжетом (Вьетнам v5 — 5 кадров похорон Кеннеди); лимита «слотов на запрос» нет.

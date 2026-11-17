@@ -371,36 +371,34 @@
       "role": "network",
       "lang": "en",
       "engine": "kokoro",
-      "voice": "am_puck",
-      "category": 28,
+      "voice": "am_onyx",
+      "category": 27,
       "network": "machines",
-      "channel_name": "Gearbox Brief",
+      "channel_name": "Archive Answers",
       "channel_id": "UCVkgUE0sOG1tSVHeZrX05Og",
-      "tone": "friendly engineer-explainer, upbeat pace, 'here's what's happening inside'",
+      "tone": "calm documentary narrator: measured, authoritative, a hint of gravity, plain words, no hype",
       "palette": [
         [
-          "f4f1ea",
-          "ff6b6b"
+          "14110d",
+          "d9a441"
         ]
       ],
-      "broll_hint": "engine cutaway, gears meshing, jet engine turbine, train bogie, door lock mechanism, pipes under a city street",
+      "broll_hint": "archival photograph, historical document, newsreel still, old map",
       "hashtags": [
-        "#engineering",
-        "#howitworks",
-        "#science"
+        "#history",
+        "#historyfacts",
+        "#coldwar"
       ],
-      "cta": "Follow to see inside one machine every day.",
+      "cta": "Follow for one 'why' of history every day.",
       "platforms": [
         "youtube"
       ],
-      "image_style": {
-        "prefix": "clean 3D isometric cutaway render, soft claymation-like matte materials, pastel color-coded parts, exploded-view layout",
-        "suffix": "plain studio white background, unlabeled, no numbers, no callout lines, no people, no logos"
-      },
-      "frame_qa": true,
+      "frame_qa": false,
       "frame_rules": [
-        "no brand logos or text on parts",
-        "no melted or nonsensical parts (stylized and exploded views are fine)"
+        "no corpses, blood, visible wounds or injured people",
+        "no stock-agency logos or watermarks",
+        "no modern photo for a historical scene",
+        "no modern clipart, flag graphics or digital illustrations: only real photos, documents, paintings or historical maps"
       ],
       "trend_exclude_channels": [
         "UCVkgUE0sOG1tSVHeZrX05Og",
@@ -411,16 +409,22 @@
       ],
       "id": "net_machines",
       "format": "short",
-      "title": "Gearbox Brief · Shorts",
+      "title": "Archive Answers · Shorts",
       "max_seconds": 55,
-      "speed": 1.05,
-      "topic_brief": "How machines and everyday technology work inside: engines, gearboxes, planes, trains, locks, appliances, infrastructure (roads, sewers, power grid). Explain the mechanism, never a brand. No weapons or military hardware. Structure: 0-2s 'you've used this 1000 times, but...', the cutaway: what's inside (3-8s), working cycle step by step (8-40s), one surprising detail (40-50s), answer to the hook. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
-      "broll_mode": "ai_images",
+      "speed": 0.92,
+      "target_words": 86,
+      "polish_voice": "third-person documentary narration, never address the viewer as 'you' outside the hook",
+      "topic_brief": "History 'why' explainers for a US audience: the real causes behind 20th-century and older events — the Vietnam War, the Cold War, falling monarchies and collapsing empires, and 'why does X still...' questions with historical roots. Explain CAUSES, not battles. Structure: 0-2s hook = a 'why' question with one concrete detail; context in one breath (who, where, when); 2-3 causes, each a documented fact with a name, date or number; a turn — the cause most people miss; the outro answers the hook. RULES: no graphic violence or casualty descriptions; no current elections, parties or judgments of living politicians; only facts a standard history textbook confirms; causes must be ones mainstream historians name (never present a single contested cause as THE reason); no conspiracy theories.",
+      "safety_rule": "historical events, wars and politics of the past are fine; no graphic violence or gore, no current elections, political parties or living politicians, no ongoing wars, no medical/financial advice, no conspiracy theories",
+      "broll_mode": "archival",
+      "broll_query_rule": "broll_query is a SEARCH QUERY for REAL archival photos (Wikimedia Commons, Library of Congress, National Archives): 3-6 English words naming the concrete subject + place + year or decade, e.g. 'Huey helicopters Vietnam 1966', 'Seward Alaska treaty 1867', 'Saigon street 1968', 'Berlin Wall 1961'. Name real people, places, ships, documents and buildings of that time. For lines about WHERE something is, borders, distances or territory changing hands write a map instead: 'MAP: <country or US state>' or 'MAP: <from> -> <to>' (e.g. 'MAP: Russia -> Alaska', 'MAP: Vietnam'), modern names only. Never ask for combat casualties, bodies, blood, wounded or executions; no abstract scenes, no 3d, no modern stock footage.",
+      "archival_video_every": 4,
+      "map_default": "United States",
       "subtitle_mode": "popin",
       "trend_queries": [
-        "how it works 3d",
-        "how does a car work",
-        "engineering explained"
+        "why did the vietnam war happen",
+        "cold war explained",
+        "history explained why"
       ]
     },
     {
@@ -428,36 +432,34 @@
       "role": "network",
       "lang": "en",
       "engine": "kokoro",
-      "voice": "am_puck",
-      "category": 28,
+      "voice": "am_onyx",
+      "category": 27,
       "network": "machines",
-      "channel_name": "Gearbox Brief",
+      "channel_name": "Archive Answers",
       "channel_id": "UCVkgUE0sOG1tSVHeZrX05Og",
-      "tone": "friendly engineer-explainer, upbeat pace, 'here's what's happening inside'",
+      "tone": "calm documentary narrator: measured, authoritative, a hint of gravity, plain words, no hype",
       "palette": [
         [
-          "f4f1ea",
-          "ff6b6b"
+          "14110d",
+          "d9a441"
         ]
       ],
-      "broll_hint": "engine cutaway, gears meshing, jet engine turbine, train bogie, door lock mechanism, pipes under a city street",
+      "broll_hint": "archival photograph, historical document, newsreel still, old map",
       "hashtags": [
-        "#engineering",
-        "#howitworks",
-        "#science"
+        "#history",
+        "#historyfacts",
+        "#coldwar"
       ],
-      "cta": "Follow to see inside one machine every day.",
+      "cta": "Follow for one 'why' of history every day.",
       "platforms": [
         "youtube"
       ],
-      "image_style": {
-        "prefix": "clean 3D isometric cutaway render, soft claymation-like matte materials, pastel color-coded parts, exploded-view layout",
-        "suffix": "plain studio white background, unlabeled, no numbers, no callout lines, no people, no logos"
-      },
-      "frame_qa": true,
+      "frame_qa": false,
       "frame_rules": [
-        "no brand logos or text on parts",
-        "no melted or nonsensical parts (stylized and exploded views are fine)"
+        "no corpses, blood, visible wounds or injured people",
+        "no stock-agency logos or watermarks",
+        "no modern photo for a historical scene",
+        "no modern clipart, flag graphics or digital illustrations: only real photos, documents, paintings or historical maps"
       ],
       "trend_exclude_channels": [
         "UCVkgUE0sOG1tSVHeZrX05Og",
@@ -468,20 +470,24 @@
       ],
       "id": "net_machines_long",
       "format": "long",
-      "title": "Gearbox Brief · Long",
+      "title": "Archive Answers · Long",
       "target_minutes": [
         8,
         10
       ],
-      "speed": 1.0,
-      "topic_brief": "How machines and everyday technology work inside: engines, gearboxes, planes, trains, locks, appliances, infrastructure (roads, sewers, power grid). Explain the mechanism, never a brand. No weapons or military hardware. Structure: 'How a [Machine] Works — Every Part Explained': start from the outside, then go part by part in the order energy flows, 6-8 parts, finish with the whole system running. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
-      "broll_mode": "ai_images",
-      "broll_ai_ratio": 0.6,
+      "speed": 0.95,
+      "polish_voice": "third-person documentary narration, never address the viewer as 'you' outside the hook",
+      "topic_brief": "History 'why' documentaries for a US audience: the real causes behind 20th-century and older events — the Vietnam War, the Cold War, falling monarchies and collapsing empires, and 'why does X still...' questions with historical roots. Explain CAUSES, not battles. Structure: 'Why [Event] Really Happened': the question and the popular answer, then 5-7 chapters, one cause each, in the order they built up (long roots first, trigger last), finish with the cause most people miss and what it still explains today. RULES: no graphic violence or casualty descriptions; no current elections, parties or judgments of living politicians; only facts a standard history textbook confirms; causes must be ones mainstream historians name (never present a single contested cause as THE reason); no conspiracy theories.",
+      "safety_rule": "historical events, wars and politics of the past are fine; no graphic violence or gore, no current elections, political parties or living politicians, no ongoing wars, no medical/financial advice, no conspiracy theories",
+      "broll_mode": "archival",
+      "broll_query_rule": "broll_query is a SEARCH QUERY for REAL archival photos (Wikimedia Commons, Library of Congress, National Archives): 3-6 English words naming the concrete subject + place + year or decade, e.g. 'Huey helicopters Vietnam 1966', 'Seward Alaska treaty 1867', 'Saigon street 1968', 'Berlin Wall 1961'. Name real people, places, ships, documents and buildings of that time. For lines about WHERE something is, borders, distances or territory changing hands write a map instead: 'MAP: <country or US state>' or 'MAP: <from> -> <to>' (e.g. 'MAP: Russia -> Alaska', 'MAP: Vietnam'), modern names only. Never ask for combat casualties, bodies, blood, wounded or executions; no abstract scenes, no 3d, no modern stock footage.",
+      "archival_video_every": 4,
+      "map_default": "United States",
       "subtitle_mode": "srt",
       "trend_queries": [
-        "how it works every part explained",
-        "how a plane works",
-        "engineering explained"
+        "why did it really happen history",
+        "cold war documentary",
+        "fall of an empire explained"
       ]
     },
     {
@@ -623,7 +629,7 @@
           "ff6f59"
         ]
       ],
-      "broll_hint": "isometric island, map of a strange border, tiny town on a cliff, globe zooming in, bridge across a strait",
+      "broll_hint": "old map, archival photograph of the place, historical document, aerial view",
       "hashtags": [
         "#geography",
         "#maps",
@@ -633,14 +639,12 @@
       "platforms": [
         "youtube"
       ],
-      "image_style": {
-        "prefix": "flat vector infographic illustration, top-down map and isometric landmark diorama, limited palette of cream, navy and coral, crisp geometric shapes, paper texture",
-        "suffix": "no people, no labels, no flags"
-      },
-      "frame_qa": true,
+      "frame_qa": false,
       "frame_rules": [
-        "no text or country names on maps",
-        "no flags"
+        "no corpses, blood, visible wounds or injured people",
+        "no stock-agency logos or watermarks",
+        "no modern photo for a historical scene",
+        "no modern clipart, flag graphics or digital illustrations: only real photos, documents, paintings or historical maps"
       ],
       "trend_exclude_channels": [
         "UCVkgUE0sOG1tSVHeZrX05Og",
@@ -653,14 +657,19 @@
       "format": "short",
       "title": "Pin Drop Why · Shorts",
       "max_seconds": 55,
-      "speed": 1.03,
-      "topic_brief": "Odd geography and strange places: weird borders and enclaves (non-political, no current conflicts), odd time zones, islands, towns built in impossible spots, megastructures and why things are where they are. Structure: 0-2s 'why is THIS here?' hook, zoom from the globe to the place (3-10s), the strange fact (10-25s), the historical or physical reason (25-45s), twist or callback. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
-      "broll_mode": "ai_images",
+      "speed": 0.93,
+      "target_words": 86,
+      "polish_voice": "narrator voice in third person ('Russia', 'the Tsar'), never put the viewer in a historical role",
+      "topic_brief": "Why the map looks the way it does: borders, purchases, land swaps, odd shapes, enclaves, capitals and places explained through history and physical geography (e.g. why Russia sold Alaska, why a country is shaped like that, why a capital moved). No current conflicts or disputed borders under active dispute. Structure: 0-2s 'why is THIS here?' hook, zoom from the globe to the place (3-10s), the strange fact (10-25s), 2-3 historical or physical reasons (25-45s), twist or callback. Only verifiable facts.",
+      "safety_rule": "history and physical geography are fine; no current wars or borders under active dispute, no elections, parties or living politicians, no graphic violence, no medical/financial advice",
+      "broll_mode": "archival",
+      "broll_query_rule": "broll_query is a SEARCH QUERY for REAL archival photos (Wikimedia Commons, Library of Congress, National Archives): 3-6 English words naming the concrete subject + place + year or decade, e.g. 'Huey helicopters Vietnam 1966', 'Seward Alaska treaty 1867', 'Saigon street 1968', 'Berlin Wall 1961'. Name real people, places, ships, documents and buildings of that time. For lines about WHERE something is, borders, distances or territory changing hands write a map instead: 'MAP: <country or US state>' or 'MAP: <from> -> <to>' (e.g. 'MAP: Russia -> Alaska', 'MAP: Vietnam'), modern names only. Use a MAP: query in at least 2 segments. Never ask for combat casualties, bodies, blood, wounded or executions; no abstract scenes, no 3d, no modern stock footage.",
+      "archival_video_every": 4,
       "subtitle_mode": "popin",
       "trend_queries": [
-        "weird geography",
-        "why does this exist",
-        "strangest town"
+        "why is this country shaped",
+        "map history explained",
+        "weird geography"
       ]
     },
     {
@@ -680,7 +689,7 @@
           "ff6f59"
         ]
       ],
-      "broll_hint": "isometric island, map of a strange border, tiny town on a cliff, globe zooming in, bridge across a strait",
+      "broll_hint": "old map, archival photograph of the place, historical document, aerial view",
       "hashtags": [
         "#geography",
         "#maps",
@@ -690,14 +699,12 @@
       "platforms": [
         "youtube"
       ],
-      "image_style": {
-        "prefix": "flat vector infographic illustration, top-down map and isometric landmark diorama, limited palette of cream, navy and coral, crisp geometric shapes, paper texture",
-        "suffix": "no people, no labels, no flags"
-      },
-      "frame_qa": true,
+      "frame_qa": false,
       "frame_rules": [
-        "no text or country names on maps",
-        "no flags"
+        "no corpses, blood, visible wounds or injured people",
+        "no stock-agency logos or watermarks",
+        "no modern photo for a historical scene",
+        "no modern clipart, flag graphics or digital illustrations: only real photos, documents, paintings or historical maps"
       ],
       "trend_exclude_channels": [
         "UCVkgUE0sOG1tSVHeZrX05Og",
@@ -714,14 +721,17 @@
         10
       ],
       "speed": 1.0,
-      "topic_brief": "Odd geography and strange places: weird borders and enclaves (non-political, no current conflicts), odd time zones, islands, towns built in impossible spots, megastructures and why things are where they are. Structure: 'The Strangest [Borders/Towns/Islands] on Earth, Explained': 7-9 places, each 60-80s: where, what's odd, why it happened. VISUAL RULE for every broll_query: describe only objects, machines, places, landscapes, space or creatures — never people, hands, faces, crowds, brands or written text.",
-      "broll_mode": "ai_images",
-      "broll_ai_ratio": 0.6,
+      "polish_voice": "narrator voice in third person ('Russia', 'the Tsar'), never put the viewer in a historical role",
+      "topic_brief": "Why the map looks the way it does: borders, purchases, land swaps, odd shapes, enclaves, capitals and places explained through history and physical geography. No current conflicts or disputed borders under active dispute. Structure: 'Why the Map Looks Like This: [Theme]': 7-9 places, each 60-80s: where, what's odd, why it happened. Only verifiable facts.",
+      "safety_rule": "history and physical geography are fine; no current wars or borders under active dispute, no elections, parties or living politicians, no graphic violence, no medical/financial advice",
+      "broll_mode": "archival",
+      "broll_query_rule": "broll_query is a SEARCH QUERY for REAL archival photos (Wikimedia Commons, Library of Congress, National Archives): 3-6 English words naming the concrete subject + place + year or decade, e.g. 'Huey helicopters Vietnam 1966', 'Seward Alaska treaty 1867', 'Saigon street 1968', 'Berlin Wall 1961'. Name real people, places, ships, documents and buildings of that time. For lines about WHERE something is, borders, distances or territory changing hands write a map instead: 'MAP: <country or US state>' or 'MAP: <from> -> <to>' (e.g. 'MAP: Russia -> Alaska', 'MAP: Vietnam'), modern names only. Use a MAP: query for every place. Never ask for combat casualties, bodies, blood, wounded or executions; no abstract scenes, no 3d, no modern stock footage.",
+      "archival_video_every": 4,
       "subtitle_mode": "srt",
       "trend_queries": [
         "geography explained",
-        "strangest places on earth",
-        "map explained"
+        "map history explained",
+        "why the map looks like this"
       ]
     }
   ]

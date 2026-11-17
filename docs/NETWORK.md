@@ -10,9 +10,9 @@
 |---|---|---|---|---|---|---|
 | net_space | Starlog Daily @StarlogDaily | бывш. Крах империй, fedorovopavel (authuser 2) | am_michael | ретро-футуризм 70-х, гуашь | karaoke | Пн |
 | net_weather | Twister Logic @TwisterLogic | бывш. Тёмная психология, dasakefir70 (authuser 4) | bm_george | мрачное фото-кино | popin | Вт |
-| net_machines | Gearbox Brief @GearboxBrief | бывш. Нейрофишки, hohotyn61 (authuser 1) | am_puck | 3D-изометрия, клей-материалы | popin | Ср |
+| net_machines | Archive Answers @ArchiveAnswersHQ (было Gearbox Brief) | бывш. Нейрофишки, hohotyn61 (authuser 1) | am_onyx | **archival**: архивные фото/хроника + карты кодом | popin | Ср |
 | net_creatures | Jaw Ledger — ОТКЛЮЧЁН (`enabled: false`) | не создан: YouTube требует телефон на hohotyn61, владелец 2026-11-13 решил вести 4 канала | am_fenrir | гравюра + акварель | karaoke | — |
-| net_geo | Pin Drop Why @PinDropWhy | бывш. ацуацу, hohotyn61 (authuser 1) | af_heart | плоский вектор-инфографика | popin | Пт |
+| net_geo | Pin Drop Why @PinDropWhy | бывш. ацуацу, hohotyn61 (authuser 1) | af_heart | **archival**: архивные фото + карты кодом | popin | Пт |
 
 Не трогаем НИКОГДА: Now What?, Milo M. Films, Rise & Ruin, Кеконятинка Хурмучная. Разрешённые каналы — только `/mnt/d/yt_network/ALLOWED_CHANNELS.json`, перед любым удалением/переименованием — `guard.py`.
 
@@ -32,6 +32,36 @@
    Тест 2026-11-13: принято 13/16 кадров по 4 каналам.
 6. **Сборка** — Kokoro TTS, субтитры, рендер, общий QA ролика.
 7. **TG** — карточка Паше.
+
+## Режим archival (net_machines = Archive Answers, net_geo = Pin Drop Why; с 2026-11-17)
+
+AI-кадры и Pexels выходили не по теме — эти 2 канала (шортсы и длинные) собираются из НАСТОЯЩИХ кадров
+(`broll_mode: "archival"`, `pipeline/broll.py::_archival_slot`):
+
+1. Сценарий пишет `broll_query` как поисковый запрос архива («Huey helicopters Vietnam 1966») или карту
+   `MAP: Vietnam` / `MAP: Russia -> Alaska` (правило — поле ниши `broll_query_rule`).
+2. Фото: Wikimedia Commons (PD / CC0 / CC BY / CC BY-SA, скачиваем только превью стандартной ширины через
+   thumb.wikimedia.org — upload.wikimedia.org ботам отдаёт 429) → Library of Congress (только «no known
+   restrictions»; с наших IP отдаёт 403 Cloudflare — источник выключается на ран) → NASA Images (только
+   космос). NARA API без ключа не работает (её PD-фото есть на Commons). NC/ND/GFDL/«Attribution» и
+   Getty/AP/Reuters/Pathé/BBC/Corbis — мимо. Мельче 700 px по короткой стороне — мимо.
+3. Каждый 4-й слот (`archival_video_every`) сначала пробует хронику Internet Archive (PD / CC BY, без
+   зеркал `youtube-*`) — режется кусок нужной длины.
+4. Каждый кадр — Gemini vision `imagegen.archival_check`: релевантность ≥ 6/10, флаги graphic (трупы,
+   кровь, раненые), watermark, blank, title_card, rule_violation (`frame_rules`). До 5 проверок на слот.
+   В проверку уходят подпись архива и фраза диктора; флаг name_only ловит совпадение только по имени
+   (пароход «United States»). Gemini недоступен → **fail-closed**: фото/хронику не берём, только карты.
+   Один файл в ролике дважды не ставится (ключ источника в `used`); вместо повтора — карта другого плана.
+5. `MAP:` с историческим названием («Russian America 1867») → регион ищется по тексту; та же карта второй раз подряд → сначала фото места, потом карта общим планом. Нет кадра → карта кодом (`pipeline/maps.py`, Natural Earth PD, ортографический глобус, подсветка +
+   стрелка, без подписей) по стране из запроса / последней карте ролика / `map_default`.
+   Подпись архива (название/описание файла) уходит в vision-проверку: другое место/год → брак.
+   Узкие полосы (газетная колонка, панорама; соотношение вне 0.45–2.6) — мимо.
+6. Фото → вертикаль: размытая заливка из того же фото + фото по ширине (широкие кадрируются вокруг объекта
+   `focus_x` от Gemini), дальше обычный Ken Burns в assemble.
+7. `sources.json` в папке ролика (страница, автор, лицензия каждого кадра); для CC BY / BY-SA строка
+   `Images: Wikimedia Commons — Автор, CC BY-SA 4.0 (ссылка)` дописывается в описание (POST.txt и TG).
+8. Безопасность темы в `network.pick` — поле ниши `safety_rule` (для истории: события прошлого ок, без
+   графики, текущих выборов/партий/живых политиков).
 
 ## Чем каналы отличаются (правило YouTube о массовом/однообразном контенте)
 

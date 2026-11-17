@@ -14,6 +14,12 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import core  # noqa: E402
 
 
+# правило безопасности темы; ниша может задать своё (safety_rule) — исторической нише общий запрет
+# «no politics, no real tragedies» отсекал бы вообще все темы
+SAFETY_DEFAULT = ("no medical/financial advice, no politics, no real tragedies or crimes with victims, "
+                  "no children")
+
+
 def pick(niche: dict, exclude: set | None = None, cands: list | None = None) -> dict | None:
     """Выбрать ролик-источник и придумать СВОЙ угол. None → нет трендов (сборка пойдёт по
     обычному селектору ниши, без источника). exclude — video_id источников, уже забракованных."""
@@ -32,8 +38,8 @@ def pick(niche: dict, exclude: set | None = None, cands: list | None = None) -> 
         f"CHANNEL: {niche.get('title')} — {niche.get('topic_brief')}\n"
         f"FORMAT: {'YouTube Short, 35-50 seconds' if niche.get('format') == 'short' else 'long video, 8-10 minutes'}\n"
         "From the list of videos trending in the last 48 hours pick ONE whose underlying SUBJECT fits the "
-        "channel and can be retold with a fresh angle, and that is SAFE (no medical/financial advice, no "
-        "politics, no real tragedies or crimes with victims, no children). Then invent OUR OWN video: a new "
+        f"channel and can be retold with a fresh angle, and that is SAFE ({niche.get('safety_rule') or SAFETY_DEFAULT}). "
+        "Then invent OUR OWN video: a new "
         "title (must not reuse the source title's wording), a different angle and a different structure. "
         "We only borrow the subject; overlap with the source must stay under 15%.\n"
         'Return JSON {"pick": <index>, "topic": "<our title>", "angle": "<2 sentences: our angle and '
